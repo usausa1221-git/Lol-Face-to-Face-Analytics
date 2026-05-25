@@ -5,24 +5,36 @@ export default async function handler(req, res) {
 
     try {
         const { myChamp, enemyChamp, winRate } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY; 
+        const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
-        
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-        
+
+        // api/gemini.js のプロンプト部分を修正
+
         const prompt = `
-            あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
-            自分のチャンピオン: ${myChamp}
-            相手のチャンピオン: ${enemyChamp}
-            この対面の勝率: ${winRate}%
-            
-            1. 相手のスキル詳細と注意点
-            2. 相手の明確な弱点
-            3. レーン戦・集団戦での具体的な立ち回り
-            4. 推奨されるコア装備・対策装備
+        あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報を、**必ず以下のMarkdown形式のフォーマットで**日本語で詳しく出力してください。
+
+        自分のチャンピオン: ${myChamp}
+        相手のチャンピオン: ${enemyChamp}
+        この対面の勝率: ${winRate}% (${myChamp}側から見た数値)
+
+        ---
+        ### 1. 相手のスキル詳細 & 注意点
+        （ここにスキル名と注意点。箇条書き推奨）
+
+        ### 2. 相手の明確な弱点
+        （ここに弱点。箇条書き推奨）
+
+        ### 3. 立ち回り (有利に動く方法)
+        （ここにレーン戦・集団戦の立ち回り。箇条書き推奨）
+
+        ### 4. 推奨装備
+        （ここにコア装備・対策装備。箇条書き推奨）
+        ---
         `;
 
         const googleResponse = await fetch(url, {
@@ -45,7 +57,7 @@ export default async function handler(req, res) {
         // 💡 Googleからエラーが返ってきた、またはブロックされた場合のチェックを追加
         if (!data.candidates || data.candidates.length === 0) {
             console.error("Gemini Error Response:", data);
-            
+
             // ブロックされた理由が記載されているかチェック
             const reason = data.promptFeedback?.blockReason || "AIの安全フィルターによって出力がブロックされたか、APIキーが無効です。";
             return res.status(400).json({ error: reason });
