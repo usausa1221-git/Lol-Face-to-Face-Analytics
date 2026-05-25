@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,86 +7,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        .dropdown-list {
-            display: none;
-        }
-
-        .dropdown-list.show {
-            display: block;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
+        body { background-color: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .dropdown-list { display: none; }
+        .dropdown-list.show { display: block; max-height: 250px; overflow-y: auto; }
+        
         /* カスタムスクロールバー（プルダウン用） */
-        .dropdown-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .dropdown-list::-webkit-scrollbar-track {
-            background: #161b22;
-        }
-
-        .dropdown-list::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 3px;
-        }
+        .dropdown-list::-webkit-scrollbar { width: 6px; }
+        .dropdown-list::-webkit-scrollbar-track { background: #161b22; }
+        .dropdown-list::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
 
         /* カードとテキストの見栄え調整 */
-        .analysis-card {
-            background-color: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .analysis-header {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-            border-bottom: 1px solid #30363d;
-            padding-bottom: 12px;
-        }
-
-        .analysis-text {
-            color: #acb4bc;
-            font-size: 0.95rem;
-            line-height: 1.7;
-        }
-
+        .analysis-card { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .analysis-header { font-size: 1.15rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; border-bottom: 1px solid #30363d; padding-bottom: 12px; }
+        .analysis-text { color: #acb4bc; font-size: 0.95rem; line-height: 1.7; }
+        
         /* AIが出力する箇条書きや強文字（**）を綺麗に見せるためのCSS */
-        .analysis-text strong {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        .analysis-text ul {
-            list-style-type: disc;
-            margin-left: 20px;
-            margin-top: 8px;
-            margin-bottom: 8px;
-        }
-
-        .analysis-text li {
-            margin-bottom: 6px;
-        }
+        .analysis-text strong { color: #ffffff; font-weight: 600; }
+        .analysis-text ul { list-style-type: disc; margin-left: 20px; margin-top: 8px; margin-bottom: 8px; }
+        .analysis-text li { margin-bottom: 6px; }
     </style>
 </head>
-
 <body class="min-h-screen p-4 md:p-8 font-sans">
 
     <div class="max-w-7xl mx-auto">
-
+        
         <header class="text-center mb-10 mt-4">
             <h1 class="text-4xl font-black text-white mb-2 tracking-wide flex justify-center items-center gap-3">
                 <i class="fa-solid fa-scroll text-[#c89b3c]"></i> LoL AI Strategist
@@ -95,22 +38,17 @@
             <p class="text-gray-400 text-sm md:text-base">Data Dragon全キャラ自動取得 × LoLalytics統計 × Gemini API</p>
         </header>
 
-        <div
-            class="bg-[#0a0e14] border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative">
-
+        <div class="bg-[#0a0e14] border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative">
+            
             <div class="relative">
                 <label class="block text-sm font-bold text-[#00d2ff] mb-2 flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved"></i> 自分のチャンピオン
                 </label>
                 <div class="relative">
-                    <input type="text" id="myChampInput"
-                        class="w-full bg-[#161b22] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00d2ff]"
-                        placeholder="名前の一部を入力（例: あーり、Ahri）" disabled>
+                    <input type="text" id="myChampInput" class="w-full bg-[#161b22] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00d2ff]" placeholder="名前の一部を入力（例: あーり、Ahri）" disabled>
                     <i class="fa-solid fa-magnifying-glass absolute right-3 top-4 text-gray-500"></i>
                 </div>
-                <ul id="myChampDropdown"
-                    class="dropdown-list absolute z-10 w-full mt-1 bg-[#161b22] border border-gray-700 rounded-lg shadow-xl">
-                </ul>
+                <ul id="myChampDropdown" class="dropdown-list absolute z-10 w-full mt-1 bg-[#161b22] border border-gray-700 rounded-lg shadow-xl"></ul>
             </div>
 
             <div class="relative">
@@ -118,20 +56,14 @@
                     <i class="fa-solid fa-skull"></i> 相手のチャンピオン
                 </label>
                 <div class="relative">
-                    <input type="text" id="enemyChampInput"
-                        class="w-full bg-[#161b22] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4b4b]"
-                        placeholder="名前の一部を入力（例: ぜど、Zed）" disabled>
+                    <input type="text" id="enemyChampInput" class="w-full bg-[#161b22] border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4b4b]" placeholder="名前の一部を入力（例: ぜど、Zed）" disabled>
                     <i class="fa-solid fa-magnifying-glass absolute right-3 top-4 text-gray-500"></i>
                 </div>
-                <ul id="enemyChampDropdown"
-                    class="dropdown-list absolute z-10 w-full mt-1 bg-[#161b22] border border-gray-700 rounded-lg shadow-xl">
-                </ul>
+                <ul id="enemyChampDropdown" class="dropdown-list absolute z-10 w-full mt-1 bg-[#161b22] border border-gray-700 rounded-lg shadow-xl"></ul>
             </div>
 
             <div class="md:col-span-2 text-center mt-2">
-                <button id="analyzeBtn"
-                    class="w-full bg-gradient-to-r from-[#c89b3c] to-[#a27c2e] text-white font-black py-4 px-6 rounded-xl transition duration-200 hover:brightness-110 flex justify-center items-center gap-2 text-lg disabled:opacity-50"
-                    disabled>
+                <button id="analyzeBtn" class="w-full bg-gradient-to-r from-[#c89b3c] to-[#a27c2e] text-white font-black py-4 px-6 rounded-xl transition duration-200 hover:brightness-110 flex justify-center items-center gap-2 text-lg disabled:opacity-50" disabled>
                     チャンピオンデータ読込中...
                 </button>
             </div>
@@ -142,11 +74,10 @@
             <p class="text-gray-400 text-base">LoLalytics統計データを検証し、Geminiが対面戦術を構築中...</p>
         </div>
 
-        <div id="resultView" class="hidden space-y-6 animate-fade-in">
-
+        <div id="resultView" class="hidden space-y-6">
+            
             <div class="analysis-card flex items-center gap-6">
-                <div id="winRateDisplay"
-                    class="text-5xl md:text-6xl font-black text-[#00d2ff] bg-[#0d1117] p-5 rounded-xl border border-gray-700">
+                <div id="winRateDisplay" class="text-5xl md:text-6xl font-black text-[#00d2ff] bg-[#0d1117] p-5 rounded-xl border border-gray-700">
                     --%
                 </div>
                 <div>
@@ -158,14 +89,14 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="aiAdviceDisplay">
-            </div>
+                </div>
         </div>
 
     </div>
 
     <script>
         // グローバル状態管理
-        let CHAMPIONS = [];
+        let CHAMPIONS = []; 
         let selectedMyChamp = '';
         let selectedEnemyChamp = '';
 
@@ -183,30 +114,25 @@
         // 1. Riot公式 Data Dragonから全チャンピオンを自動ロードする
         async function loadAllChampions() {
             try {
-                // 最新のゲームパッチ（Data Dragon用リソース）を取得
                 const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
                 const versions = await versionRes.json();
-                const latestVersion = versions[0]; // 最新パッチを取得 (例: "16.x.x")
+                const latestVersion = versions[0]; 
 
-                // 日本語の全チャンピオンデータを取得
                 const url = `https://ddragon.leagueoflegends.com/cdn/${latestVersion}/data/ja_JP/champion.json`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error("データの取得に失敗しました");
                 const data = await response.json();
-
-                // プルダウン検索用にオブジェクトから配列にマッピング
+                
                 CHAMPIONS = Object.values(data.data).map(champ => ({
-                    id: champ.id,     // 英語ID (Garen, Ahri等)
-                    name: champ.name  // 日本語名 (ガレン、アーリ等)
-                })).sort((a, b) => a.name.localeCompare(b.name, 'ja')); // 五十音順ソート
+                    id: champ.id,     
+                    name: champ.name  
+                })).sort((a, b) => a.name.localeCompare(b.name, 'ja')); 
 
-                // ロードが完了したらインプットとボタンを使えるようにする
                 myInput.disabled = false;
                 enemyInput.disabled = false;
                 analyzeBtn.disabled = false;
                 analyzeBtn.innerText = "戦術を生成する";
 
-                // プルダウンのセットアップ
                 setupDropdown(myInput, myDropdown, (id) => selectedMyChamp = id);
                 setupDropdown(enemyInput, enemyDropdown, (id) => selectedEnemyChamp = id);
 
@@ -221,10 +147,9 @@
         function setupDropdown(inputEl, dropdownEl, setChampFunc) {
             function renderList(filterText = '') {
                 dropdownEl.innerHTML = '';
-
-                // ひらがな・カタカナ・英語のどれでも部分一致で引っかかるようにフィルタリング
-                const filtered = CHAMPIONS.filter(c =>
-                    c.id.toLowerCase().includes(filterText.toLowerCase()) ||
+                
+                const filtered = CHAMPIONS.filter(c => 
+                    c.id.toLowerCase().includes(filterText.toLowerCase()) || 
                     c.name.includes(filterText)
                 );
 
@@ -237,8 +162,7 @@
                     const li = document.createElement('li');
                     li.className = 'px-4 py-3 hover:bg-[#1f2631] cursor-pointer text-white flex justify-between text-sm border-b border-gray-800 last:border-0';
                     li.innerHTML = `<span>${c.name}</span> <span class="text-gray-500 text-xs">${c.id}</span>`;
-
-                    // 候補クリック時の処理
+                    
                     li.addEventListener('mousedown', () => {
                         inputEl.value = `${c.name} (${c.id})`;
                         setChampFunc(c.id);
@@ -259,69 +183,56 @@
             });
 
             inputEl.addEventListener('blur', () => {
-                // クリック判定を優先するため少し遅らせて閉じる
                 setTimeout(() => dropdownEl.classList.remove('show'), 200);
             });
         }
 
-        // 3. LoLalytics 模擬データマッチング（バックエンド拡張用ポインタ）
+        // 3. LoLalytics 模擬データマッチング
         function getLolalyticsWinRate(my, enemy) {
             const mockDb = { "Garen_Darius": 48.5, "Ahri_Zed": 51.2, "Akali_Zed": 49.8 };
-            // 登録外の対面は実戦的な勝率分布（45%〜55%）をランダム生成
-            return mockDb[`${my}_${enemy}`] || (Math.floor(Math.random() * 101) / 10 + 45).toFixed(1);
+            return mockDb[`${my}_${enemy}`] || (Math.floor(Math.random() * 101) / 10 + 45).toFixed(1); 
         }
 
-        // 4. 解析実行ボタン連動
+        // 4. 解析実行ボタン連動（JSON対応版）
         analyzeBtn.addEventListener('click', async () => {
             if (!selectedMyChamp || !selectedEnemyChamp) return alert('自分と相手のチャンピオンをリストから選択してください');
 
-            // 画面をローディング状態にする
             resultView.classList.add('hidden');
             loadingView.classList.remove('hidden');
             analyzeBtn.disabled = true;
 
             try {
                 const winRate = getLolalyticsWinRate(selectedMyChamp, selectedEnemyChamp);
-
-                // Vercel上のサーバーレス関数（/api/gemini）へパース要求を送信
+                
                 const response = await fetch('/api/gemini', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        myChamp: selectedMyChamp,
-                        enemyChamp: selectedEnemyChamp,
-                        winRate: winRate
+                    body: JSON.stringify({ 
+                        myChamp: selectedMyChamp, 
+                        enemyChamp: selectedEnemyChamp, 
+                        winRate: winRate 
                     })
                 });
 
-                const data = await response.json();
+                const data = await response.json(); 
                 if (!response.ok) throw new Error(data.error || '戦術データの取得に失敗しました。');
-
-                // Markdownの「### 」を目印に各セクションを分割パース
-                const rawSections = data.text.split('### ').filter(s => s.trim() !== '');
 
                 // 4カラムのデザイン設定定義
                 const columnConfig = [
-                    { title: "1. 相手のスキル詳細 & 注意点", icon: "fa-fist-raised", color: "text-[#ffb020]" },
-                    { title: "2. 相手の明確な弱点", icon: "fa-bullseye", color: "text-[#ff4b4b]" },
-                    { title: "3. 立ち回り (有利に動く)", icon: "fa-chess-knight", color: "text-[#00d2ff]" },
-                    { title: "4. 推奨装備", icon: "fa-shield-halved", color: "text-[#20c997]" }
+                    { key: "skills", title: "1. 相手のスキル詳細 & 注意点", icon: "fa-fist-raised", color: "text-[#ffb020]" },
+                    { key: "weaknesses", title: "2. 相手の明確な弱点", icon: "fa-bullseye", color: "text-[#ff4b4b]" },
+                    { key: "tactics", title: "3. 立ち回り (有利に動く)", icon: "fa-chess-knight", color: "text-[#00d2ff]" },
+                    { key: "items", title: "4. 推奨装備", icon: "fa-shield-halved", color: "text-[#20c997]" }
                 ];
 
-                aiAdviceDisplay.innerHTML = ''; // 表示リセット
+                aiAdviceDisplay.innerHTML = ''; 
 
-                // 分割したAIテキストを各カードへ配置してHTML生成
-                rawSections.forEach((section, index) => {
-                    if (index >= 4) return; // 4項目以上の余剰はカット
-                    const config = columnConfig[index];
-
-                    // 見出し行を飛ばして本文だけを抽出
-                    const lines = section.split('\n');
-                    lines.shift();
-
-                    // 太字マーク（**テキスト**）をHTMLタグ（<strong>）に置換
-                    let formattedBody = lines.join('\n').trim()
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                // JSONのキー（skills等）を使って、ズレなく各カードへテキストをマッピング
+                columnConfig.forEach((config) => {
+                    let rawText = data[config.key] || "情報が取得できませんでした。";
+                    
+                    // 太字マーク（**テキスト**）をHTMLタグに置換する装飾処理
+                    let formattedBody = rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
                     const cardHtml = `
                         <div class="analysis-card border-t-4 border-t-gray-700 hover:border-t-[#c89b3c] transition-all duration-300">
@@ -338,7 +249,7 @@
 
             } catch (error) {
                 alert(error.message);
-            } finally {
+            } {
                 loadingView.classList.add('hidden');
                 analyzeBtn.disabled = false;
             }
@@ -348,5 +259,4 @@
         loadAllChampions();
     </script>
 </body>
-
 </html>
