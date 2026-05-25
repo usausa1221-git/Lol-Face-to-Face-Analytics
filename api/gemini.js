@@ -4,7 +4,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { myChamp, enemyChamp, winRate } = req.body;
+        // 💡 フロントから送られてくる新しい変数（isBotLane, mySupport, enemySupport）を受け取る
+        const { myChamp, enemyChamp, winRate, isBotLane, mySupport, enemySupport } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
@@ -13,23 +14,42 @@ export default async function handler(req, res) {
 
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
+        // 💡 モードによってプロンプトの前提文を動的に切り替える
+        let matchupContext = "";
+        if (isBotLane) {
+            matchupContext = `
+                【Botレーン（2vs2）マッチアップ条件】
+                ・自分のチャンピオン（ADC）: ${myChamp}
+                ・味方のサポート: ${mySupport}
+                ・相手のチャンピオン（ADC）: ${enemyChamp}
+                ・相手のサポート: ${enemySupport}
+                ・この対面の統計勝率: ${winRate}%
+                
+                ※アドバイスの際は、ADCとサポートのシナジー（コンボや相性）や、2vs2のレーン戦におけるキルライン、お互いのスキルの噛み合いを深く考慮してください。
+            `;
+        } else {
+            matchupContext = `
+                【ソロレーン（1vs1）マッチアップ条件】
+                ・自分のチャンピオン: ${myChamp}
+                ・相手のチャンピオン: ${enemyChamp}
+                ・この対面の統計勝率: ${winRate}%
+            `;
+        }
+
         const prompt = `
-            あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
-            自分のチャンピオン: ${myChamp}
-            相手のチャンピオン: ${enemyChamp}
-            この対面の勝率: ${winRate}%
+            あなたはLeague of Legendsのプロコーチです。以下の条件におけるマッチアップの攻略情報をプレイヤーに提供してください。
+            ${matchupContext}
 
             【出力ルール】
             必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。
             プログラムで自動処理するため、余計な挨拶や解説テキストは絶対に含めず、純粋なマークダウンのJSONブロック（\`\`\`json 〜 \`\`\`）のみを返してください。各値は箇条書きのテキストにしてください。
-
-            特記事項として、"items"の項目にLoLのコアアイテムやカウンターアイテムを記載する際は、アイテム名の直前にシステム用のアイテムIDを「#数字」の形式（例: #3078 三位一体, #3153 滅びゆく王の剣, #1055 ドランブレード）で必ず含めて出力してください。
+            コアアイテムを記載する際は、アイテム名の直前にシステム用のアイテムIDを「#数字」の形式（例: #3031 無限の剣）で必ず含めてください。
 
             {
-                "skills": "相手の主要スキルの詳細とCDや回避方法などの注意点",
-                "weaknesses": "相手チャンピオンの明確な弱点や突くべきタイミング",
-                "tactics": "レーン戦・集団戦での具体的な立ち回り（勝率の数値を意識すること）",
-                "items": "推奨されるコア装備や対面用のカウンターアイテム（必ずアイテム名の前に#アイテムIDを入れること）"
+                "skills": "相手側（Botモードなら相手のADC・サポ両方）の主要スキルの詳細や注意すべきコンボ・CCチェーン",
+                "weaknesses": "相手側の構成（または単体）の明確な弱点、レベルやスキルCDなどの突くべきタイミング",
+                "tactics": "レーン戦・2vs2での戦い方、ガンク合わせ、集団戦での具体的な立ち回り（勝率の数値を意識すること）",
+                "items": "推奨されるコア装備や対面・相手チームのダメージ属性を意識したカウンターアイテム"
             }
         `;
 
@@ -50,22 +70,11 @@ export default async function handler(req, res) {
         const data = await googleResponse.json();
 
         if (!googleResponse.ok) {
-            return res.status(googleResponse.status).json({
-                error: `Google API Error: ${data.error?.message || '不明なエラー'}`
-            });
-        }
-
-        if (!data.candidates || data.candidates.length === 0) {
-            return res.status(400).json({ error: "AIの応答候補(candidates)が空でした。" });
+            return res.status(googleResponse.status).json({ error: `Google API Error: ${data.error?.message || '不明なエラー'}` });
         }
 
         let aiText = data.candidates[0].content.parts[0].text.trim();
-
-        if (aiText.startsWith("```json")) {
-            aiText = aiText.replace(/^```json/, "").replace(/```$/, "").trim();
-        } else if (aiText.startsWith("```")) {
-            aiText = aiText.replace(/^```/, "").replace(/```$/, "").trim();
-        }
+        if (aiText.startsWith("```json")) { aiText = aiText.replace(/^```json/, "").replace(/```$/, "").trim(); }
 
         const parsedData = JSON.parse(aiText);
         return res.status(200).json(parsedData);
