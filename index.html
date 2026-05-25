@@ -311,7 +311,7 @@
             cursor: not-allowed;
         }
 
-        /* VS ショーケース（💡最初から flex にして常時表示させる） */
+        /* VS ショーケース */
         .vs-box {
             display: flex;
             justify-content: center;
@@ -488,18 +488,13 @@
             z-index: 1;
         }
 
-        /* 動的装飾用テキスト */
+        /* 動的装飾用テキスト（💡HTMLタグ直書き対応のため、whitespace-pre-wrap は除外） */
         .analysis-text {
             font-size: 0.92rem;
-            line-height: 1.7;
             color: #acb4bc;
             position: relative;
             z-index: 2;
             margin: 0;
-        }
-
-        .analysis-text strong {
-            color: #ffe4a0;
         }
 
         .lol-item-icon {
@@ -642,7 +637,6 @@
         let isBotLaneMode = false;
         let selectedMyRole = 'adc';
 
-        // 💡 未選択の時に「ダサい非表示マーク」を出さないためのランダム選択アイコンURL
         const DEFAULT_ICON = "https://ddragon.leagueoflegends.com/cdn/img/champion/loading/Aatrox_0.jpg";
 
         const myInput = document.getElementById('myChampInput'); const myDropdown = document.getElementById('myChampDropdown');
@@ -683,7 +677,6 @@
             supportInputs.classList.remove('hidden');
             roleSelectionContainer.classList.remove('hidden');
 
-            // 💡 2vs2起動時に画像がバグるのを防ぐ初期値の同期
             mySupVsContainer.classList.remove('hidden');
             enemySupVsContainer.classList.remove('hidden');
 
@@ -721,7 +714,6 @@
             return src.replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
         }
 
-        // 💡 選択されていない部分に公式のデフォルト placeholder 画像を流し込む安全処理
         function resetIconsIfEmpty() {
             if (!selectedMyChamp) { myVsImg.src = DEFAULT_ICON; myVsName.innerText = "未選択"; }
             if (!selectedEnemyChamp) { enemyVsImg.src = DEFAULT_ICON; enemyVsName.innerText = "未選択"; }
@@ -745,7 +737,6 @@
                 enemyInput.placeholder = "名前を入力...";
                 analyzeBtn.disabled = false; analyzeBtn.innerText = "戦術を生成する";
 
-                // 初期状態で「未選択画像」をセット
                 resetIconsIfEmpty();
 
                 setupDropdown(myInput, myDropdown, (id, name) => { selectedMyChamp = id; myVsName.innerText = name; myVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; });
@@ -813,15 +804,42 @@
                 aiAdviceDisplay.innerHTML = '';
                 columnConfig.forEach((config) => {
                     let rawData = data[config.key] || "情報が取得できませんでした。";
-                    let formattedBody = Array.isArray(rawData) ? rawData.map(item => `• ${item}`).join('\n') : rawData;
-                    formattedBody = formattedBody.replace(/#(\d{4})/g, (m, id) => `<img src="https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${id}.png" class="lol-item-icon">`);
-                    formattedBody = formattedBody.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    let formattedBody = "";
+
+                    // 1. 配列、または文字列からベースのテキストを構築
+                    if (Array.isArray(rawData)) {
+                        formattedBody = rawData.map(item => `${item}`).join('\n');
+                    } else {
+                        formattedBody = rawData;
+                    }
+
+                    // 2. 💡【新機能】箇条書きのポッチ（・や-）を綺麗な段落・インデントに置換
+                    const lines = formattedBody.split('\n');
+                    const processedLines = lines.map(line => {
+                        let trimmed = line.trim();
+                        if (trimmed.startsWith('・') || trimmed.startsWith('-') || trimmed.startsWith('•') || trimmed.startsWith('*')) {
+                            let content = trimmed.replace(/^([・\-\*•]\s*)/, '');
+                            return `<div style="margin-bottom: 10px; padding-left: 12px; text-indent: -12px; line-height: 1.6;">• ${content}</div>`;
+                        }
+                        return trimmed ? `<div style="margin-bottom: 12px; line-height: 1.6;">${trimmed}</div>` : '';
+                    });
+                    formattedBody = processedLines.join('');
+
+                    // 3. アイテム画像自動マッピング
+                    const itemImageRegex = /#(\d{4})/g;
+                    formattedBody = formattedBody.replace(itemImageRegex, (match, itemId) => {
+                        return `<img src="https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${itemId}.png" class="lol-item-icon" alt="">`;
+                    });
+
+                    // 4. 💡【色・太さ強化】「**テキスト**」または「【テキスト】」をゴールド＆ブルーに変調
+                    formattedBody = formattedBody.replace(/\*\*(.*?)\*\*/g, '<strong style="color: #ffe4a0; font-weight: 800;">$1</strong>');
+                    formattedBody = formattedBody.replace(/【(.*?)】/g, '<strong style="color: #00d2ff; font-weight: 800;">【$1】</strong>');
 
                     const cardHtml = `
                         <div class="analysis-card" style="border-bottom-color: ${config.color};">
                             <i class="fa-solid ${config.bgIcon} card-bg-icon"></i>
                             <h3 class="analysis-header"><i class="fa-solid ${config.icon}" style="color: ${config.color};"></i> ${config.title}</h3>
-                            <div class="analysis-text whitespace-pre-wrap">${formattedBody}</div>
+                            <div class="analysis-text">${formattedBody}</div>
                         </div>`;
                     aiAdviceDisplay.insertAdjacentHTML('beforeend', cardHtml);
                 });
