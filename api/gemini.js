@@ -11,8 +11,8 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
 
-        // 💡 APIの出力をJSON形式（responseMimeType）に固定する設定をURLパラメーターではなくオプションで渡すための準備
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // 💡 APIエンドポイントをより安定した「v1」に変更
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
         const prompt = `
             あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             この対面の勝率: ${winRate}%
 
             【出力ルール】
-            必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。余計な挨拶や解説テキストは一切含めず、JSONデータのみを返してください。各値は箇条書き（改行付き）のテキストにしてください。
+            必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。余計な挨拶や解説テキストは絶対に含めず、純粋なJSONオブジェクト単体のみを返してください。各値は箇条書きのテキストにしてください。
 
             {
                 "skills": "相手の主要スキルの詳細とCDや回避方法などの注意点",
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                // 💡 Geminiに確実にJSONを吐き出させるための超重要設定
+                // 💡 generationConfigの構造を標準的な形に修正
                 generationConfig: {
                     responseMimeType: "application/json"
                 },
@@ -51,18 +51,24 @@ export default async function handler(req, res) {
 
         const data = await googleResponse.json();
 
-        if (!data.candidates || data.candidates.length === 0) {
-            return res.status(400).json({ error: "AIの応答が空でした。再度お試しください。" });
+        // 💡 Googleからエラーコードが返ってきた場合に、その詳細を画面にアラートで出すように強化
+        if (!googleResponse.ok) {
+            return res.status(googleResponse.status).json({
+                error: `Google API Error: ${data.error?.message || '不明なエラー'}`
+            });
         }
 
-        // Geminiから返ってきたJSON文字列
+        if (!data.candidates || data.candidates.length === 0) {
+            return res.status(400).json({ error: "AIの応答候補(candidates)が空でした。" });
+        }
+
         const aiJsonString = data.candidates[0].content.parts[0].text;
 
-        // 裏方側で一度パースして、中身が壊れていないかチェックしてフロントにそのままオブジェクトとして返す
-        const parsedData = JSON.parse(aiJsonString);
+        // 返ってきた文字列をオブジェクトにパースしてフロントに送信
+        const parsedData = JSON.parse(aiJsonString.trim());
         return res.status(200).json(parsedData);
 
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: `Server Error: ${error.message}` });
     }
 }
