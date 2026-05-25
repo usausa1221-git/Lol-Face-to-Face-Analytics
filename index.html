@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LoL AI Strategist</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <link rel="stylesheet"
+        href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css)">
     <style>
         body {
             background-color: #0b0e14;
@@ -21,11 +22,10 @@
 
         .dropdown-list.show {
             display: block;
-            max-height: 280px;
+            max-height: 250px;
             overflow-y: auto;
         }
 
-        /* カスタムスクロールバー（プルダウン用） */
         .dropdown-list::-webkit-scrollbar {
             width: 6px;
         }
@@ -39,7 +39,6 @@
             border-radius: 3px;
         }
 
-        /* 装飾的なカードデザイン */
         .analysis-card {
             background-color: rgba(22, 27, 34, 0.85);
             border: 1px solid #30363d;
@@ -89,7 +88,6 @@
             margin-bottom: 6px;
         }
 
-        /* カードの底に配置する巨大な透かしアイコン */
         .card-bg-icon {
             position: absolute;
             bottom: -20px;
@@ -101,7 +99,6 @@
             z-index: 1;
         }
 
-        /* アイテム画像のスタイル */
         .lol-item-icon {
             display: inline-block;
             width: 26px;
@@ -113,6 +110,14 @@
             margin-top: -2px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
         }
+
+        /* タブのアクティブスタイル */
+        .tab-active {
+            background-color: #c89b3c;
+            color: #0b0e14;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(200, 155, 60, 0.3);
+        }
     </style>
 </head>
 
@@ -120,7 +125,7 @@
 
     <div class="max-w-7xl mx-auto">
 
-        <header class="text-center mb-10 mt-4">
+        <header class="text-center mb-8 mt-4">
             <h1
                 class="text-5xl font-black text-white mb-3 tracking-wide flex justify-center items-center gap-3 drop-shadow-md">
                 <i class="fa-solid fa-bolt text-[#c89b3c] animate-pulse"></i> LoL AI Strategist
@@ -130,18 +135,31 @@
             <div class="h-[2px] w-32 bg-gradient-to-r from-transparent via-[#c89b3c] to-transparent mx-auto mt-3"></div>
         </header>
 
+        <div class="flex justify-center mb-6">
+            <div class="bg-[#161b22] border border-gray-800 p-1 rounded-xl flex gap-1 shadow-xl">
+                <button id="soloModeBtn"
+                    class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 tab-active">
+                    <i class="fa-solid fa-user mr-2"></i>ソロレーン (1vs1)
+                </button>
+                <button id="botModeBtn"
+                    class="px-6 py-2.5 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all duration-300">
+                    <i class="fa-solid fa-users mr-2"></i>Botレーン (2vs2)
+                </button>
+            </div>
+        </div>
+
         <div
             class="bg-[#0a0e14]/90 border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 gap-6 mb-8 relative backdrop-blur-md">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="relative">
-                    <label class="block text-sm font-bold text-[#00d2ff] mb-2 flex items-center gap-2 tracking-wide">
+                    <label id="myLabel" class="block text-sm font-bold text-[#00d2ff] mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-shield-halved"></i> 自分のチャンピオン
                     </label>
                     <div class="relative">
                         <input type="text" id="myChampInput"
-                            class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00d2ff] transition-all duration-300"
-                            placeholder="名前を入力" disabled>
+                            class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00d2ff]"
+                            placeholder="名前を入力..." disabled>
                         <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-gray-500"></i>
                     </div>
                     <ul id="myChampDropdown"
@@ -150,13 +168,13 @@
                 </div>
 
                 <div class="relative">
-                    <label class="block text-sm font-bold text-[#ff4b4b] mb-2 flex items-center gap-2 tracking-wide">
+                    <label id="enemyLabel" class="block text-sm font-bold text-[#ff4b4b] mb-2 flex items-center gap-2">
                         <i class="fa-solid fa-skull"></i> 相手のチャンピオン
                     </label>
                     <div class="relative">
                         <input type="text" id="enemyChampInput"
-                            class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4b4b] transition-all duration-300"
-                            placeholder="名前を入力" disabled>
+                            class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4b4b]"
+                            placeholder="名前を入力..." disabled>
                         <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-gray-500"></i>
                     </div>
                     <ul id="enemyChampDropdown"
@@ -165,27 +183,63 @@
                 </div>
             </div>
 
-            <div id="vsShowcase" class="hidden flex justify-center items-center gap-6 md:gap-12 my-6 animate-fade-in">
-                <div class="flex flex-col items-center">
-                    <img id="myVsImg"
-                        class="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-[#00d2ff] shadow-lg object-cover"
-                        src="" alt="">
-                    <span id="myVsName" class="text-sm font-bold mt-2 text-white"></span>
+            <div id="supportInputs" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                <div class="relative">
+                    <label class="block text-sm font-bold text-[#8aedff] mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-hands-holding-child"></i> 味方のサポート
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="mySupportInput"
+                            class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00d2ff]"
+                            placeholder="サポートの名前を入力...">
+                        <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-gray-500"></i>
+                    </div>
+                    <ul id="mySupportDropdown"
+                        class="dropdown-list absolute z-30 w-full mt-2 bg-[#161b22] border border-gray-700 rounded-xl shadow-2xl">
+                    </ul>
                 </div>
-                <div
-                    class="text-3xl md:text-5xl font-black italic bg-gradient-to-r from-[#00d2ff] to-[#ff4b4b] bg-clip-text text-transparent px-4 py-2">
-                    VS</div>
-                <div class="flex flex-col items-center">
-                    <img id="enemyVsImg"
-                        class="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-[#ff4b4b] shadow-lg object-cover"
-                        src="" alt="">
-                    <span id="enemyVsName" class="text-sm font-bold mt-2 text-white"></span>
+
+                <div class="relative">
+                    <label class="block text-sm font-bold text-[#ff7676] mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> 相手のサポート
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="enemySupportInput"
+                            class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4b4b]"
+                            placeholder="サポートの名前を入力...">
+                        <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-gray-500"></i>
+                    </div>
+                    <ul id="enemySupportDropdown"
+                        class="dropdown-list absolute z-30 w-full mt-2 bg-[#161b22] border border-gray-700 rounded-xl shadow-2xl">
+                    </ul>
                 </div>
             </div>
 
-            <div class="text-center mt-2">
+            <div id="vsShowcase" class="hidden flex justify-center items-center gap-4 md:gap-8 my-4">
+                <div class="flex items-center gap-3">
+                    <div class="flex flex-col items-center"><img id="myVsImg"
+                            class="w-16 h-16 md:w-20 md:h-20 rounded-xl border border-[#00d2ff] object-cover" src=""
+                            alt=""><span id="myVsName" class="text-xs font-bold mt-1 text-white"></span></div>
+                    <div id="mySupVsContainer" class="hidden flex flex-col items-center"><img id="mySupVsImg"
+                            class="w-16 h-16 md:w-20 md:h-20 rounded-xl border border-[#8aedff] object-cover" src=""
+                            alt=""><span id="mySupVsName" class="text-xs font-bold mt-1 text-gray-400"></span></div>
+                </div>
+                <div
+                    class="text-2xl md:text-4xl font-black italic bg-gradient-to-r from-[#00d2ff] to-[#ff4b4b] bg-clip-text text-transparent px-2">
+                    VS</div>
+                <div class="flex items-center gap-3">
+                    <div class="flex flex-col items-center"><img id="enemyVsImg"
+                            class="w-16 h-16 md:w-20 md:h-20 rounded-xl border border-[#ff4b4b] object-cover" src=""
+                            alt=""><span id="enemyVsName" class="text-xs font-bold mt-1 text-white"></span></div>
+                    <div id="enemySupVsContainer" class="hidden flex flex-col items-center"><img id="enemySupVsImg"
+                            class="w-16 h-16 md:w-20 md:h-20 rounded-xl border border-[#ff7676] object-cover" src=""
+                            alt=""><span id="enemySupVsName" class="text-xs font-bold mt-1 text-gray-400"></span></div>
+                </div>
+            </div>
+
+            <div class="text-center">
                 <button id="analyzeBtn"
-                    class="w-full bg-gradient-to-r from-[#c89b3c] to-[#a27c2e] text-white font-black py-4 px-6 rounded-xl transition duration-300 hover:brightness-110 flex justify-center items-center gap-2 text-xl shadow-lg disabled:opacity-40"
+                    class="w-full bg-gradient-to-r from-[#c89b3c] to-[#a27c2e] text-white font-black py-4 px-6 rounded-xl transition duration-300 hover:brightness-110 text-xl shadow-lg disabled:opacity-40"
                     disabled>
                     チャンピオンデータ読込中...
                 </button>
@@ -198,242 +252,173 @@
         </div>
 
         <div id="resultView" class="hidden space-y-6">
-
             <div id="winRateCard"
                 class="relative bg-gradient-to-r from-[#161b22] to-[#0d1117] border border-gray-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-2xl overflow-hidden min-h-[140px]">
-                <div id="splashBg"
-                    class="absolute right-0 top-0 w-full sm:w-2/3 h-full pointer-events-none opacity-20 sm:opacity-35 transition-all"
+                <div id="splashBg" class="absolute right-0 top-0 w-full sm:w-2/3 h-full pointer-events-none opacity-35"
                     style="background-size: cover; background-position: center top; mask-image: linear-gradient(to right, transparent, black); -webkit-mask-image: linear-gradient(to right, transparent, black);">
                 </div>
-
                 <div id="winRateDisplay"
                     class="text-5xl md:text-6xl font-black text-[#00d2ff] bg-[#0b0e14]/90 px-6 py-4 rounded-xl border border-gray-700 z-10 shadow-xl">
-                    --%
-                </div>
+                    --%</div>
                 <div class="z-10 text-center sm:text-left">
                     <h2
                         class="text-xl md:text-2xl font-bold text-white flex items-center justify-center sm:justify-start gap-2">
-                        <i class="fa-solid fa-chart-line text-[#c89b3c]"></i> 対面勝率 (LoLalytics Live)
-                    </h2>
+                        <i class="fa-solid fa-chart-line text-[#c89b3c]"></i> 対面勝率 (LoLalytics Live)</h2>
                     <p class="text-gray-300 text-sm mt-1 font-medium">AIはこの勝率傾向（有利/不利）を熟知したうえでコーチングプランを組み立てています。</p>
                 </div>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="aiAdviceDisplay">
-            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="aiAdviceDisplay"></div>
         </div>
-
     </div>
 
     <script>
-        // グローバル状態管理
         let CHAMPIONS = [];
-        let selectedMyChamp = '';
-        let selectedEnemyChamp = '';
+        let selectedMyChamp = ''; let selectedEnemyChamp = '';
+        let selectedMySup = ''; let selectedEnemySup = '';
         let currentVersion = '16.1.1';
+        let isBotLaneMode = false; // 💡 モード保持変数
 
-        // DOM要素の取得
-        const myInput = document.getElementById('myChampInput');
-        const myDropdown = document.getElementById('myChampDropdown');
-        const enemyInput = document.getElementById('enemyChampInput');
-        const enemyDropdown = document.getElementById('enemyChampDropdown');
+        // DOM要素のロード
+        const myInput = document.getElementById('myChampInput'); const myDropdown = document.getElementById('myChampDropdown');
+        const enemyInput = document.getElementById('enemyChampInput'); const enemyDropdown = document.getElementById('enemyChampDropdown');
+        const mySupInput = document.getElementById('mySupportInput'); const mySupDropdown = document.getElementById('mySupportDropdown');
+        const enemySupInput = document.getElementById('enemySupportInput'); const enemySupDropdown = document.getElementById('enemySupportDropdown');
         const analyzeBtn = document.getElementById('analyzeBtn');
-        const loadingView = document.getElementById('loadingView');
-        const resultView = document.getElementById('resultView');
-        const winRateDisplay = document.getElementById('winRateDisplay');
-        const aiAdviceDisplay = document.getElementById('aiAdviceDisplay');
-
-        // VS表示エリアの要素
-        const vsShowcase = document.getElementById('vsShowcase');
-        const myVsImg = document.getElementById('myVsImg');
-        const enemyVsImg = document.getElementById('enemyVsImg');
-        const myVsName = document.getElementById('myVsName');
-        const enemyVsName = document.getElementById('enemyVsName');
+        const loadingView = document.getElementById('loadingView'); const resultView = document.getElementById('resultView');
+        const winRateDisplay = document.getElementById('winRateDisplay'); const aiAdviceDisplay = document.getElementById('aiAdviceDisplay');
         const splashBg = document.getElementById('splashBg');
 
-        // カタカナをひらがなに変換するヘルパー関数
+        // モードコントロール要素
+        const soloModeBtn = document.getElementById('soloModeBtn'); const botModeBtn = document.getElementById('botModeBtn');
+        const supportInputs = document.getElementById('supportInputs');
+        const mySupVsContainer = document.getElementById('mySupVsContainer'); const enemySupVsContainer = document.getElementById('enemySupVsContainer');
+        const myVsImg = document.getElementById('myVsImg'); const enemyVsImg = document.getElementById('enemyVsImg');
+        const mySupVsImg = document.getElementById('mySupVsImg'); const enemySupVsImg = document.getElementById('enemySupVsImg');
+        const myVsName = document.getElementById('myVsName'); const enemyVsName = document.getElementById('enemyVsName');
+        const mySupVsName = document.getElementById('mySupVsName'); const enemySupVsName = document.getElementById('enemySupVsName');
+
+        // 💡 タブ切り替えイベント
+        soloModeBtn.addEventListener('click', () => {
+            isBotLaneMode = false;
+            soloModeBtn.classList.add('tab-active'); botModeBtn.classList.remove('tab-active');
+            botModeBtn.classList.add('text-gray-400');
+            supportInputs.classList.add('hidden');
+            mySupVsContainer.classList.add('hidden'); enemySupVsContainer.classList.add('hidden');
+            document.getElementById('myLabel').innerHTML = `<i class="fa-solid fa-shield-halved"></i> 自分のチャンピオン`;
+            document.getElementById('enemyLabel').innerHTML = `<i class="fa-solid fa-skull"></i> 相手のチャンピオン`;
+        });
+
+        botModeBtn.addEventListener('click', () => {
+            isBotLaneMode = true;
+            botModeBtn.classList.add('tab-active'); soloModeBtn.classList.remove('tab-active');
+            soloModeBtn.classList.add('text-gray-400');
+            supportInputs.classList.remove('hidden');
+            if (selectedMySup) mySupVsContainer.classList.remove('hidden');
+            if (selectedEnemySup) enemySupVsContainer.classList.remove('hidden');
+            document.getElementById('myLabel').innerHTML = `<i class="fa-solid fa-crosshairs text-[#00d2ff]"></i> 自分のチャンピオン (ADC)`;
+            document.getElementById('enemyLabel').innerHTML = `<i class="fa-solid fa-gun text-[#ff4b4b]"></i> 相手のチャンピオン (ADC)`;
+            updateVsWidget();
+        });
+
+        // カタカナ➔ひらがな
         function katakanaToHiragana(src) {
-            return src.replace(/[\u30a1-\u30f6]/g, function (match) {
-                const chr = match.charCodeAt(0) - 0x60;
-                return String.fromCharCode(chr);
-            });
+            return src.replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
         }
 
-        // 1. Riot公式 Data Dragonから全データを自動ロード
+        // Data Dragonロード
         async function loadAllChampions() {
             try {
-                const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
-                const versions = await versionRes.json();
-                currentVersion = versions[0];
-
-                const url = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/data/ja_JP/champion.json`;
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("データの取得に失敗しました");
+                const versionRes = await fetch('[https://ddragon.leagueoflegends.com/api/versions.json](https://ddragon.leagueoflegends.com/api/versions.json)');
+                const versions = await versionRes.json(); currentVersion = versions[0];
+                const response = await fetch(`https://ddragon.leagueoflegends.com/cdn/${currentVersion}/data/ja_JP/champion.json`);
                 const data = await response.json();
 
-                CHAMPIONS = Object.values(data.data).map(champ => {
-                    const hiraganaName = katakanaToHiragana(champ.name);
-                    return {
-                        id: champ.id,
-                        name: champ.name,
-                        kana: hiraganaName
-                    };
-                }).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+                CHAMPIONS = Object.values(data.data).map(champ => ({
+                    id: champ.id, name: champ.name, kana: katakanaToHiragana(champ.name)
+                })).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
-                myInput.disabled = false;
-                enemyInput.disabled = false;
-                analyzeBtn.disabled = false;
-                analyzeBtn.innerText = "戦術を生成する";
+                myInput.disabled = false; enemyInput.disabled = false;
+                analyzeBtn.disabled = false; analyzeBtn.innerText = "戦術を生成する";
 
-                setupDropdown(myInput, myDropdown, (id, name) => {
-                    selectedMyChamp = id;
-                    myVsName.innerText = name;
-                    myVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`;
-                    updateVsWidget();
-                });
-                setupDropdown(enemyInput, enemyDropdown, (id, name) => {
-                    selectedEnemyChamp = id;
-                    enemyVsName.innerText = name;
-                    enemyVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`;
-                    updateVsWidget();
-                });
+                // 4つのインプット全てに予測変換ドロップダウンをセット
+                setupDropdown(myInput, myDropdown, (id, name) => { selectedMyChamp = id; myVsName.innerText = name; myVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; updateVsWidget(); });
+                setupDropdown(enemyInput, enemyDropdown, (id, name) => { selectedEnemyChamp = id; enemyVsName.innerText = name; enemyVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; updateVsWidget(); });
+                setupDropdown(mySupInput, mySupDropdown, (id, name) => { selectedMySup = id; mySupVsName.innerText = name; mySupVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; if (isBotLaneMode) mySupVsContainer.classList.remove('hidden'); updateVsWidget(); });
+                setupDropdown(enemySupInput, enemySupDropdown, (id, name) => { selectedEnemySup = id; enemySupVsName.innerText = name; enemySupVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; if (isBotLaneMode) enemySupVsContainer.classList.remove('hidden'); updateVsWidget(); });
 
-            } catch (error) {
-                console.error("Data Dragon Error:", error);
-                analyzeBtn.innerText = "データ読込失敗（リロードしてください）";
-            }
+            } catch (error) { console.error(error); }
         }
 
-        // VS表示エリアの切り替え
         function updateVsWidget() {
-            if (selectedMyChamp || selectedEnemyChamp) {
-                vsShowcase.classList.remove('hidden');
-                vsShowcase.classList.add('flex');
+            if (selectedMyChamp || selectedEnemyChamp || selectedMySup || selectedEnemySup) {
+                document.getElementById('vsShowcase').classList.remove('hidden');
+                document.getElementById('vsShowcase').classList.add('flex');
             }
-            if (!selectedMyChamp) { myVsImg.src = ''; myVsName.innerText = '未選択'; }
-            if (!selectedEnemyChamp) { enemyVsImg.src = ''; enemyVsName.innerText = '未選択'; }
         }
 
-        // 2. 予測変換付きプルダウン（ひらがな・カタカナ・英語のトリプル部分一致）
+        // 検索ロジック
         function setupDropdown(inputEl, dropdownEl, setChampFunc) {
             function renderList(filterText = '') {
-                dropdownEl.innerHTML = '';
-                const searchKey = filterText.toLowerCase().trim();
-
-                const filtered = CHAMPIONS.filter(c => {
-                    return c.id.toLowerCase().includes(searchKey) ||
-                        c.name.includes(searchKey) ||
-                        c.kana.includes(searchKey);
-                });
-
-                if (filtered.length === 0) {
-                    dropdownEl.innerHTML = `<li class="px-4 py-3 text-gray-500 text-sm">見つかりません</li>`;
-                    return;
-                }
-
+                dropdownEl.innerHTML = ''; const searchKey = filterText.toLowerCase().trim();
+                const filtered = CHAMPIONS.filter(c => c.id.toLowerCase().includes(searchKey) || c.name.includes(searchKey) || c.kana.includes(searchKey));
+                if (filtered.length === 0) { dropdownEl.innerHTML = `<li class="px-4 py-3 text-gray-500 text-sm">見つかりません</li>`; return; }
                 filtered.forEach(c => {
-                    const li = document.createElement('li');
-                    li.className = 'px-4 py-2 hover:bg-[#1f2631] cursor-pointer text-white flex items-center justify-between text-sm border-b border-gray-800 last:border-0 transition-colors';
-
-                    const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${c.id}.png`;
-                    li.innerHTML = `
-                        <div class="flex items-center gap-3">
-                            <img src="${iconUrl}" class="w-8 h-8 rounded-full border border-gray-600 object-cover" alt="">
-                            <span class="font-medium">${c.name}</span>
-                        </div>
-                        <span class="text-gray-500 text-xs">${c.id}</span>
-                    `;
-
-                    li.addEventListener('mousedown', () => {
-                        inputEl.value = `${c.name} (${c.id})`;
-                        setChampFunc(c.id, c.name);
-                        dropdownEl.classList.remove('show');
-                    });
+                    const li = document.createElement('li'); li.className = 'px-4 py-2 hover:bg-[#1f2631] cursor-pointer text-white flex items-center justify-between text-sm border-b border-gray-800 last:border-0';
+                    li.innerHTML = `<div class="flex items-center gap-3"><img src="https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${c.id}.png" class="w-8 h-8 rounded-full object-cover"><span>${c.name}</span></div><span class="text-gray-500 text-xs">${c.id}</span>`;
+                    li.addEventListener('mousedown', () => { inputEl.value = `${c.name} (${c.id})`; setChampFunc(c.id, c.name); dropdownEl.classList.remove('show'); });
                     dropdownEl.appendChild(li);
                 });
             }
-
             inputEl.addEventListener('input', (e) => { renderList(e.target.value); dropdownEl.classList.add('show'); });
             inputEl.addEventListener('focus', () => { renderList(inputEl.value.includes('(') ? '' : inputEl.value); dropdownEl.classList.add('show'); });
             inputEl.addEventListener('blur', () => { setTimeout(() => dropdownEl.classList.remove('show'), 200); });
         }
 
-        // 3. LoLalytics 模擬データマッチング
-        function getLolalyticsWinRate(my, enemy) {
-            const mockDb = { "Garen_Darius": 48.5, "Ahri_Zed": 51.2, "Akali_Zed": 49.8 };
-            return mockDb[`${my}_${enemy}`] || (Math.floor(Math.random() * 101) / 10 + 45).toFixed(1);
-        }
+        function getLolalyticsWinRate() { return (Math.floor(Math.random() * 101) / 10 + 45).toFixed(1); }
 
-        // 4. 解析実行
+        // 解析リクエストの送信（💡モード情報をAPIに渡す形にアップデート）
         analyzeBtn.addEventListener('click', async () => {
-            if (!selectedMyChamp || !selectedEnemyChamp) return alert('自分と相手のチャンピオンをリストから選択してください');
+            if (!selectedMyChamp || !selectedEnemyChamp) return alert('主要チャンピオンを選択してください');
+            if (isBotLaneMode && (!selectedMySup || !selectedEnemySup)) return alert('Botモードではサポートも両方選択してください');
 
-            resultView.classList.add('hidden');
-            loadingView.classList.remove('hidden');
-            analyzeBtn.disabled = true;
+            resultView.classList.add('hidden'); loadingView.classList.remove('hidden'); analyzeBtn.disabled = true;
 
             try {
-                const winRate = getLolalyticsWinRate(selectedMyChamp, selectedEnemyChamp);
-
-                // 背景パネルに相手のSplash Artをフェードロード
+                const winRate = getLolalyticsWinRate();
                 splashBg.style.backgroundImage = `url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${selectedEnemyChamp}_0.jpg)`;
 
                 const response = await fetch('/api/gemini', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ myChamp: selectedMyChamp, enemyChamp: selectedEnemyChamp, winRate: winRate })
+                    body: JSON.stringify({
+                        myChamp: selectedMyChamp, enemyChamp: selectedEnemyChamp, winRate: winRate,
+                        isBotLane: isBotLaneMode, mySupport: selectedMySup, enemySupport: selectedEnemySup // 💡追加
+                    })
                 });
 
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || '戦術データの取得に失敗しました。');
+                if (!response.ok) throw new Error(data.error || 'データ取得失敗');
 
                 const columnConfig = [
-                    { key: "skills", title: "1. 相手のスキル詳細 & 注意点", icon: "fa-fist-raised", color: "text-[#ffb020]", bgIcon: "fa-wand-magic-sparkles" },
-                    { key: "weaknesses", title: "2. 相手の明確な弱点", icon: "fa-bullseye", color: "text-[#ff4b4b]", bgIcon: "fa-crosshairs" },
-                    { key: "tactics", title: "3. 立ち回り (有利に動く)", icon: "fa-chess-knight", color: "text-[#00d2ff]", bgIcon: "fa-shield-halved" },
-                    { key: "items", title: "4. 推奨装備", icon: "fa-bag-shopping", color: "text-[#20c997]", bgIcon: "fa-shield-halved" }
+                    { key: "skills", title: "1. 主要スキル・コンボ注意点", icon: "fa-fist-raised", color: "text-[#ffb020]", bgIcon: "fa-wand-magic-sparkles" },
+                    { key: "weaknesses", title: "2. 明確な弱点・狙い目", icon: "fa-bullseye", color: "text-[#ff4b4b]", bgIcon: "fa-crosshairs" },
+                    { key: "tactics", title: "3. 立ち回り・2vs2の主導権", icon: "fa-chess-knight", color: "text-[#00d2ff]", bgIcon: "fa-shield-halved" },
+                    { key: "items", title: "4. 推奨装備・カウンタービルド", icon: "fa-bag-shopping", color: "text-[#20c997]", bgIcon: "fa-shield-halved" }
                 ];
 
                 aiAdviceDisplay.innerHTML = '';
-
                 columnConfig.forEach((config) => {
                     let rawData = data[config.key] || "情報が取得できませんでした。";
-                    let formattedBody = "";
-
-                    if (Array.isArray(rawData)) {
-                        formattedBody = rawData.map(item => `• ${item}`).join('\n');
-                    } else {
-                        formattedBody = rawData;
-                    }
-
-                    // アイテム画像自動マッピング
-                    const itemImageRegex = /#(\d{4})/g;
-                    formattedBody = formattedBody.replace(itemImageRegex, (match, itemId) => {
-                        return `<img src="https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${itemId}.png" class="lol-item-icon" alt="">`;
-                    });
-
-                    // 強調太字マークを置換
+                    let formattedBody = Array.isArray(rawData) ? rawData.map(item => `• ${item}`).join('\n') : rawData;
+                    formattedBody = formattedBody.replace(/#(\d{4})/g, (m, id) => `<img src="https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${id}.png" class="lol-item-icon">`);
                     formattedBody = formattedBody.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-                    const cardHtml = `
-                        <div class="analysis-card border-b-2 border-b-gray-800 hover:border-b-[#c89b3c] transition-all duration-300 transform hover:-translate-y-1">
-                            <i class="fa-solid ${config.bgIcon} card-bg-icon"></i>
-                            <h3 class="analysis-header"><i class="fa-solid ${config.icon} ${config.color}"></i> ${config.title}</h3>
-                            <div class="analysis-text whitespace-pre-wrap">${formattedBody}</div>
-                        </div>
-                    `;
+                    const cardHtml = `<div class="analysis-card border-b-2 border-b-gray-800 hover:border-b-[#c89b3c] transition-all duration-300 transform hover:-translate-y-1"><i class="fa-solid ${config.bgIcon} card-bg-icon"></i><h3 class="analysis-header"><i class="fa-solid ${config.icon} ${config.color}"></i> ${config.title}</h3><div class="analysis-text whitespace-pre-wrap">${formattedBody}</div></div>`;
                     aiAdviceDisplay.insertAdjacentHTML('beforeend', cardHtml);
                 });
 
-                winRateDisplay.innerText = `${winRate}%`;
-                resultView.classList.remove('hidden');
-
-            } catch (error) {
-                alert(error.message);
-            } finally {
-                loadingView.classList.add('hidden');
-                analyzeBtn.disabled = false;
-            }
+                winRateDisplay.innerText = `${winRate}%`; resultView.classList.remove('hidden');
+            } catch (error) { alert(error.message); } finally { loadingView.classList.add('hidden'); analyzeBtn.disabled = false; }
         });
 
         loadAllChampions();
