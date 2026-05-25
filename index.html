@@ -35,7 +35,7 @@
             <h1 class="text-4xl font-black text-white mb-2 tracking-wide flex justify-center items-center gap-3">
                 <i class="fa-solid fa-scroll text-[#c89b3c]"></i> LoL AI Strategist
             </h1>
-            <p class="text-gray-400 text-sm md:text-base">Data Dragon全キャラ自動取得 × LoLalytics統計 × Gemini API</p>
+            <p class="text-gray-400 text-sm md:text-base">Data Dragon全キャラ自動取得 × LoLalytics統計 × Gemini 2.5 Flash</p>
         </header>
 
         <div class="bg-[#0a0e14] border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative">
@@ -71,7 +71,7 @@
 
         <div id="loadingView" class="hidden text-center py-12">
             <i class="fa-solid fa-spinner animate-spin text-5xl text-[#c89b3c] mb-4"></i>
-            <p class="text-gray-400 text-base">LoLalytics統計データを検証し、Geminiが対面戦術を構築中...</p>
+            <p class="text-gray-400 text-base">LoLalytics統計データを検証し、Gemini 2.5が対面戦術を構築中...</p>
         </div>
 
         <div id="resultView" class="hidden space-y-6">
@@ -193,7 +193,7 @@
             return mockDb[`${my}_${enemy}`] || (Math.floor(Math.random() * 101) / 10 + 45).toFixed(1); 
         }
 
-        // 4. 解析実行ボタン連動（JSON対応版）
+        // 4. 解析実行ボタン連動（JSON & 配列・文字列ハイブリッド対応版）
         analyzeBtn.addEventListener('click', async () => {
             if (!selectedMyChamp || !selectedEnemyChamp) return alert('自分と相手のチャンピオンをリストから選択してください');
 
@@ -227,12 +227,21 @@
 
                 aiAdviceDisplay.innerHTML = ''; 
 
-                // JSONのキー（skills等）を使って、ズレなく各カードへテキストをマッピング
+                // JSONのキーを使って、型バグを起こさず安全にマッピング
                 columnConfig.forEach((config) => {
-                    let rawText = data[config.key] || "情報が取得できませんでした。";
+                    let rawData = data[config.key] || "情報が取得できませんでした。";
+                    let formattedBody = "";
+
+                    // AIが配列（リスト形式）でデータを返してきた場合の処理
+                    if (Array.isArray(rawData)) {
+                        formattedBody = rawData.map(item => `• ${item}`).join('\n');
+                    } else {
+                        // 通常の文字列で返ってきた場合の処理
+                        formattedBody = rawData;
+                    }
                     
                     // 太字マーク（**テキスト**）をHTMLタグに置換する装飾処理
-                    let formattedBody = rawText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    formattedBody = formattedBody.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
                     const cardHtml = `
                         <div class="analysis-card border-t-4 border-t-gray-700 hover:border-t-[#c89b3c] transition-all duration-300">
@@ -249,7 +258,7 @@
 
             } catch (error) {
                 alert(error.message);
-            } {
+            } finally {
                 loadingView.classList.add('hidden');
                 analyzeBtn.disabled = false;
             }
