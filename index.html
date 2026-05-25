@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoL AI Strategist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+
+        .dropdown-list {
+            display: none;
+        }
+
+        .dropdown-list.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-4 md:p-12 font-sans">
+
+    <div class="max-w-4xl mx-auto">
+
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-extrabold text-white mb-2 tracking-wide flex justify-center items-center gap-3">
+                <i class="fa-solid fa-scroll text-[#c89b3c]"></i> LoL AI Strategist
+            </h1>
+            <p class="text-gray-400">LoLalytics統計 × Gemini APIによる対面アナライザー</p>
+        </header>
+
+        <div
+            class="bg-[#0a0e14] border border-gray-800 rounded-xl p-6 shadow-2xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 relative">
+
+            <div class="relative">
+                <label class="block text-sm font-bold text-[#00d2ff] mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> 自分のチャンピオン
+                </label>
+                <div class="relative">
+                    <input type="text" id="myChampInput"
+                        class="w-full bg-[#161b22] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00d2ff]"
+                        placeholder="例: アーリ, Ahri...">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-4 text-gray-500"></i>
+                </div>
+                <ul id="myChampDropdown"
+                    class="dropdown-list absolute z-10 w-full mt-1 bg-[#161b22] border border-gray-700 rounded-lg max-h-60 overflow-y-auto shadow-xl">
+                </ul>
+            </div>
+
+            <div class="relative">
+                <label class="block text-sm font-bold text-[#ff4b4b] mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-skull"></i> 相手のチャンピオン
+                </label>
+                <div class="relative">
+                    <input type="text" id="enemyChampInput"
+                        class="w-full bg-[#161b22] border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#ff4b4b]"
+                        placeholder="例: ゼド, Zed...">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-4 text-gray-500"></i>
+                </div>
+                <ul id="enemyChampDropdown"
+                    class="dropdown-list absolute z-10 w-full mt-1 bg-[#161b22] border border-gray-700 rounded-lg max-h-60 overflow-y-auto shadow-xl">
+                </ul>
+            </div>
+
+            <div class="md:col-span-2 text-center mt-2">
+                <button id="analyzeBtn"
+                    class="w-full bg-gradient-to-r from-[#c89b3c] to-[#a27c2e] text-white font-bold py-3 px-6 rounded-lg transition duration-200 hover:brightness-110 flex justify-center items-center gap-2 text-lg">
+                    戦術を生成する
+                </button>
+            </div>
+        </div>
+
+        <div id="loadingView" class="hidden text-center py-10">
+            <i class="fa-solid fa-spinner animate-spin text-4xl text-[#c89b3c] mb-4"></i>
+            <p class="text-gray-400">LoLalyticsのデータを検証し、Geminiが戦術を構築中...</p>
+        </div>
+
+        <div id="resultView" class="hidden bg-[#0a0e14] border border-gray-800 rounded-xl p-6 md:p-8 shadow-2xl">
+
+            <div class="flex items-center gap-6 border-b border-gray-800 pb-6 mb-6">
+                <div id="winRateDisplay"
+                    class="text-4xl md:text-5xl font-black text-[#00d2ff] bg-[#161b22] p-4 rounded-xl border border-gray-700">
+                    --%
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-simple text-[#c89b3c]"></i> 对面勝率 (LoLalyticsデータ参照)
+                    </h2>
+                    <p class="text-gray-400 text-sm mt-1">現在のパッチに基づいた、このマッチアップの勝率です。</p>
+                </div>
+            </div>
+
+            <div id="aiAdviceDisplay" class="text-gray-300 leading-relaxed whitespace-pre-wrap space-y-4">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // チャンピオンデータ
+        const CHAMPIONS = [
+            { id: 'Aatrox', name: 'エイトロックス' },
+            { id: 'Ahri', name: 'アーリ' },
+            { id: 'Akali', name: 'アカリ' },
+            { id: 'Darius', name: 'ダリウス' },
+            { id: 'Garen', name: 'ガレン' },
+            { id: 'Jinx', name: 'ジンクス' },
+            { id: 'Lux', name: 'ラックス' },
+            { id: 'Yasuo', name: 'ヤスオ' },
+            { id: 'Zed', name: 'ゼド' }
+        ];
+
+        let selectedMyChamp = '';
+        let selectedEnemyChamp = '';
+
+        const myInput = document.getElementById('myChampInput');
+        const myDropdown = document.getElementById('myChampDropdown');
+        const enemyInput = document.getElementById('enemyChampInput');
+        const enemyDropdown = document.getElementById('enemyChampDropdown');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingView = document.getElementById('loadingView');
+        const resultView = document.getElementById('resultView');
+        const winRateDisplay = document.getElementById('winRateDisplay');
+        const aiAdviceDisplay = document.getElementById('aiAdviceDisplay');
+
+        // 予測変換プルダウンの生成関数
+        function setupDropdown(inputEl, dropdownEl, setChampFunc) {
+            function renderList(filterText = '') {
+                dropdownEl.innerHTML = '';
+                const filtered = CHAMPIONS.filter(c =>
+                    c.id.toLowerCase().includes(filterText.toLowerCase()) ||
+                    c.name.includes(filterText)
+                );
+
+                if (filtered.length === 0) {
+                    dropdownEl.innerHTML = `<li class="px-4 py-2 text-gray-500 text-sm">見つかりません</li>`;
+                    return;
+                }
+
+                filtered.forEach(c => {
+                    const li = document.createElement('li');
+                    li.className = 'px-4 py-2 hover:bg-[#1f2631] cursor-pointer text-white flex justify-between text-sm';
+                    li.innerHTML = `<span>${c.name}</span> <span class="text-gray-500">${c.id}</span>`;
+                    li.addEventListener('mousedown', () => {
+                        inputEl.value = `${c.name} (${c.id})`;
+                        setChampFunc(c.id);
+                        dropdownEl.classList.remove('show');
+                    });
+                    dropdownEl.appendChild(li);
+                });
+            }
+
+            inputEl.addEventListener('input', (e) => {
+                renderList(e.target.value);
+                dropdownEl.classList.add('show');
+            });
+
+            inputEl.addEventListener('focus', () => {
+                renderList(inputEl.value.includes('(') ? '' : inputEl.value);
+                dropdownEl.classList.add('show');
+            });
+
+            inputEl.addEventListener('blur', () => {
+                setTimeout(() => dropdownEl.classList.remove('show'), 200);
+            });
+        }
+
+        setupDropdown(myInput, myDropdown, (id) => selectedMyChamp = id);
+        setupDropdown(enemyInput, enemyDropdown, (id) => selectedEnemyChamp = id);
+
+        // LoLalytics 模擬データ取得（のちにスクレイピングやAPIに置き換える部分）
+        function getLolalyticsWinRate(my, enemy) {
+            const mockDb = { "Garen_Darius": 48.5, "Ahri_Zed": 51.2, "Akali_Zed": 49.8 };
+            return mockDb[`${my}_${enemy}`] || (Math.floor(Math.random() * 10) + 45);
+        }
+
+        // 解析ボタンクリック処理
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedMyChamp || !selectedEnemyChamp) return alert('チャンピオンを選択してください');
+
+            // 表示のリセットとローディング表示
+            resultView.classList.add('hidden');
+            loadingView.classList.remove('hidden');
+            analyzeBtn.disabled = true;
+
+            try {
+                const winRate = getLolalyticsWinRate(selectedMyChamp, selectedEnemyChamp);
+
+                // Vercel上のサーバーレス関数（/api/gemini）を呼び出す
+                const response = await fetch('/api/gemini', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        myChamp: selectedMyChamp,
+                        enemyChamp: selectedEnemyChamp,
+                        winRate: winRate
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || '戦術の取得に失敗しました。');
+
+                // 画面へ反映
+                winRateDisplay.innerText = `${winRate}%`;
+                aiAdviceDisplay.innerText = data.text;
+
+                resultView.classList.remove('hidden');
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                loadingView.classList.add('hidden');
+                analyzeBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
