@@ -5,15 +5,15 @@ export default async function handler(req, res) {
 
     try {
         const { myChamp, enemyChamp, winRate } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY; 
 
         if (!apiKey) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
-
-        // 💡 APIエンドポイントをより安定した「v1」に変更
+        
+        // 💡 モデル名を最新の「gemini-2.5-flash」に変更しました
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
+        
         const prompt = `
             あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
             自分のチャンピオン: ${myChamp}
@@ -36,9 +36,8 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                // 💡 generationConfigの構造を標準的な形に修正
-                generationConfig: {
-                    responseMimeType: "application/json"
+                generation_config: {
+                    response_mime_type: "application/json"
                 },
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -51,10 +50,9 @@ export default async function handler(req, res) {
 
         const data = await googleResponse.json();
 
-        // 💡 Googleからエラーコードが返ってきた場合に、その詳細を画面にアラートで出すように強化
         if (!googleResponse.ok) {
-            return res.status(googleResponse.status).json({
-                error: `Google API Error: ${data.error?.message || '不明なエラー'}`
+            return res.status(googleResponse.status).json({ 
+                error: `Google API Error: ${data.error?.message || '不明なエラー'}` 
             });
         }
 
@@ -63,8 +61,7 @@ export default async function handler(req, res) {
         }
 
         const aiJsonString = data.candidates[0].content.parts[0].text;
-
-        // 返ってきた文字列をオブジェクトにパースしてフロントに送信
+        
         const parsedData = JSON.parse(aiJsonString.trim());
         return res.status(200).json(parsedData);
 
