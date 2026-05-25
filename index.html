@@ -89,7 +89,7 @@
             margin-bottom: 6px;
         }
 
-        /* カードの底に配置する巨大な透かし透かしアイコン */
+        /* カードの底に配置する巨大な透かしアイコン */
         .card-bg-icon {
             position: absolute;
             bottom: -20px;
@@ -131,7 +131,7 @@
         </header>
 
         <div
-            class="bg-[#0a0e14]/90 border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl mb-8 relative backdrop-blur-md">
+            class="bg-[#0a0e14]/90 border border-gray-800 rounded-2xl p-6 md:p-8 shadow-2xl grid grid-cols-1 gap-6 mb-8 relative backdrop-blur-md">
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="relative">
@@ -141,7 +141,7 @@
                     <div class="relative">
                         <input type="text" id="myChampInput"
                             class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00d2ff] transition-all duration-300"
-                            placeholder="名前を入力（例: アーリ, Ahri）" disabled>
+                            placeholder="名前を入力（ひらがな対応 例: あーり, Ahri）" disabled>
                         <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-gray-500"></i>
                     </div>
                     <ul id="myChampDropdown"
@@ -156,7 +156,7 @@
                     <div class="relative">
                         <input type="text" id="enemyChampInput"
                             class="w-full bg-[#161b22] border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#ff4b4b] transition-all duration-300"
-                            placeholder="名前を入力（例: ゼド, Zed）" disabled>
+                            placeholder="名前を入力（ひらがな対応 例: ぜど, Zed）" disabled>
                         <i class="fa-solid fa-magnifying-glass absolute right-4 top-4 text-gray-500"></i>
                     </div>
                     <ul id="enemyChampDropdown"
@@ -165,10 +165,10 @@
                 </div>
             </div>
 
-            <div id="vsShowcase" class="hidden flex justify-center items-center gap-6 md:gap-12 my-8 animate-fade-in">
+            <div id="vsShowcase" class="hidden flex justify-center items-center gap-6 md:gap-12 my-6 animate-fade-in">
                 <div class="flex flex-col items-center">
                     <img id="myVsImg"
-                        class="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-2 border-[#00d2ff] shadow-lg object-cover"
+                        class="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-[#00d2ff] shadow-lg object-cover"
                         src="" alt="">
                     <span id="myVsName" class="text-sm font-bold mt-2 text-white"></span>
                 </div>
@@ -177,13 +177,13 @@
                     VS</div>
                 <div class="flex flex-col items-center">
                     <img id="enemyVsImg"
-                        class="w-20 h-20 md:w-28 md:h-28 rounded-2xl border-2 border-[#ff4b4b] shadow-lg object-cover"
+                        class="w-20 h-20 md:w-24 md:h-24 rounded-2xl border-2 border-[#ff4b4b] shadow-lg object-cover"
                         src="" alt="">
                     <span id="enemyVsName" class="text-sm font-bold mt-2 text-white"></span>
                 </div>
             </div>
 
-            <div class="text-center mt-6">
+            <div class="text-center mt-2">
                 <button id="analyzeBtn"
                     class="w-full bg-gradient-to-r from-[#c89b3c] to-[#a27c2e] text-white font-black py-4 px-6 rounded-xl transition duration-300 hover:brightness-110 flex justify-center items-center gap-2 text-xl shadow-lg disabled:opacity-40"
                     disabled>
@@ -200,10 +200,10 @@
         <div id="resultView" class="hidden space-y-6">
 
             <div id="winRateCard"
-                class="relative bg-gradient-to-r from-[#161b22] to-[#0d1117] border border-gray-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-2xl overflow-hidden min-h-[160px]">
+                class="relative bg-gradient-to-r from-[#161b22] to-[#0d1117] border border-gray-700 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-2xl overflow-hidden min-h-[140px]">
                 <div id="splashBg"
                     class="absolute right-0 top-0 w-full sm:w-2/3 h-full pointer-events-none opacity-20 sm:opacity-35 transition-all"
-                    style="background-size: cover; background-position: center top; mask-image: linear-gradient(to right, transparent, black);">
+                    style="background-size: cover; background-position: center top; mask-image: linear-gradient(to right, transparent, black); -webkit-mask-image: linear-gradient(to right, transparent, black);">
                 </div>
 
                 <div id="winRateDisplay"
@@ -226,11 +226,13 @@
     </div>
 
     <script>
+        // グローバル状態管理
         let CHAMPIONS = [];
         let selectedMyChamp = '';
         let selectedEnemyChamp = '';
         let currentVersion = '16.1.1';
 
+        // DOM要素の取得
         const myInput = document.getElementById('myChampInput');
         const myDropdown = document.getElementById('myChampDropdown');
         const enemyInput = document.getElementById('enemyChampInput');
@@ -249,7 +251,15 @@
         const enemyVsName = document.getElementById('enemyVsName');
         const splashBg = document.getElementById('splashBg');
 
-        // 1. Data Dragonから全データを自動ロード
+        // カタカナをひらがなに変換するヘルパー関数
+        function katakanaToHiragana(src) {
+            return src.replace(/[\u30a1-\u30f6]/g, function (match) {
+                const chr = match.charCodeAt(0) - 0x60;
+                return String.fromCharCode(chr);
+            });
+        }
+
+        // 1. Riot公式 Data Dragonから全データを自動ロード
         async function loadAllChampions() {
             try {
                 const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
@@ -261,10 +271,14 @@
                 if (!response.ok) throw new Error("データの取得に失敗しました");
                 const data = await response.json();
 
-                CHAMPIONS = Object.values(data.data).map(champ => ({
-                    id: champ.id,
-                    name: champ.name
-                })).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+                CHAMPIONS = Object.values(data.data).map(champ => {
+                    const hiraganaName = katakanaToHiragana(champ.name);
+                    return {
+                        id: champ.id,
+                        name: champ.name,
+                        kana: hiraganaName
+                    };
+                }).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
                 myInput.disabled = false;
                 enemyInput.disabled = false;
@@ -290,25 +304,27 @@
             }
         }
 
-        // VSグラフィックウィジェットの更新表示
+        // VS表示エリアの切り替え
         function updateVsWidget() {
             if (selectedMyChamp || selectedEnemyChamp) {
                 vsShowcase.classList.remove('hidden');
                 vsShowcase.classList.add('flex');
             }
-            if (!selectedMyChamp) { myVsImg.src = 'https://ddragon.leagueoflegends.com/cdn/img/champion/loading/Aatrox_0.jpg'; myVsName.innerText = '未選択'; }
-            if (!selectedEnemyChamp) { enemyVsImg.src = 'https://ddragon.leagueoflegends.com/cdn/img/champion/loading/Aatrox_0.jpg'; enemyVsName.innerText = '未選択'; }
+            if (!selectedMyChamp) { myVsImg.src = ''; myVsName.innerText = '未選択'; }
+            if (!selectedEnemyChamp) { enemyVsImg.src = ''; enemyVsName.innerText = '未選択'; }
         }
 
-        // 2. 予測変換付きプルダウン（💡顔グラフィック画像付きにパワーアップ）
+        // 2. 予測変換付きプルダウン（ひらがな・カタカナ・英語のトリプル部分一致）
         function setupDropdown(inputEl, dropdownEl, setChampFunc) {
             function renderList(filterText = '') {
                 dropdownEl.innerHTML = '';
+                const searchKey = filterText.toLowerCase().trim();
 
-                const filtered = CHAMPIONS.filter(c =>
-                    c.id.toLowerCase().includes(filterText.toLowerCase()) ||
-                    c.name.includes(filterText)
-                );
+                const filtered = CHAMPIONS.filter(c => {
+                    return c.id.toLowerCase().includes(searchKey) ||
+                        c.name.includes(searchKey) ||
+                        c.kana.includes(searchKey);
+                });
 
                 if (filtered.length === 0) {
                     dropdownEl.innerHTML = `<li class="px-4 py-3 text-gray-500 text-sm">見つかりません</li>`;
@@ -319,7 +335,6 @@
                     const li = document.createElement('li');
                     li.className = 'px-4 py-2 hover:bg-[#1f2631] cursor-pointer text-white flex items-center justify-between text-sm border-b border-gray-800 last:border-0 transition-colors';
 
-                    // 💡 リストの中に丸型の顔アイコン（Square Icon）を追加
                     const iconUrl = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${c.id}.png`;
                     li.innerHTML = `
                         <div class="flex items-center gap-3">
@@ -351,7 +366,7 @@
 
         // 4. 解析実行
         analyzeBtn.addEventListener('click', async () => {
-            if (!selectedMyChamp || !selectedEnemyChamp) return alert('自分と相手のチャンピオンを選択してください');
+            if (!selectedMyChamp || !selectedEnemyChamp) return alert('自分と相手のチャンピオンをリストから選択してください');
 
             resultView.classList.add('hidden');
             loadingView.classList.remove('hidden');
@@ -360,7 +375,7 @@
             try {
                 const winRate = getLolalyticsWinRate(selectedMyChamp, selectedEnemyChamp);
 
-                // 💡 背景パネルに相手の超高画質Splash Artをロードしてはめ込む
+                // 背景パネルに相手のSplash Artをフェードロード
                 splashBg.style.backgroundImage = `url(https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${selectedEnemyChamp}_0.jpg)`;
 
                 const response = await fetch('/api/gemini', {
@@ -372,30 +387,34 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || '戦術データの取得に失敗しました。');
 
-                // 4カラムのデザイン設定定義 (💡大きな透かし用アイコン「bgIcon」を追加)
                 const columnConfig = [
                     { key: "skills", title: "1. 相手のスキル詳細 & 注意点", icon: "fa-fist-raised", color: "text-[#ffb020]", bgIcon: "fa-wand-magic-sparkles" },
                     { key: "weaknesses", title: "2. 相手の明確な弱点", icon: "fa-bullseye", color: "text-[#ff4b4b]", bgIcon: "fa-crosshairs" },
                     { key: "tactics", title: "3. 立ち回り (有利に動く)", icon: "fa-chess-knight", color: "text-[#00d2ff]", bgIcon: "fa-shield-halved" },
-                    { key: "items", title: "4. 推奨装備", icon: "fa-bag-shopping", color: "text-[#20c997]", bgIcon: "fa-sword" }
+                    { key: "items", title: "4. 推奨装備", icon: "fa-bag-shopping", color: "text-[#20c997]", bgIcon: "fa-shield-halved" }
                 ];
 
                 aiAdviceDisplay.innerHTML = '';
 
                 columnConfig.forEach((config) => {
                     let rawData = data[config.key] || "情報が取得できませんでした。";
-                    let formattedBody = Array.isArray(rawData) ? rawData.map(item => `• ${item}`).join('\n') : rawData;
+                    let formattedBody = "";
 
-                    // アイテムIDタグ（#4桁数字）を公式画像タグに置換
+                    if (Array.isArray(rawData)) {
+                        formattedBody = rawData.map(item => `• ${item}`).join('\n');
+                    } else {
+                        formattedBody = rawData;
+                    }
+
+                    // アイテム画像自動マッピング
                     const itemImageRegex = /#(\d{4})/g;
                     formattedBody = formattedBody.replace(itemImageRegex, (match, itemId) => {
                         return `<img src="https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/item/${itemId}.png" class="lol-item-icon" alt="">`;
                     });
 
-                    // 太字マークを置換
+                    // 強調太字マークを置換
                     formattedBody = formattedBody.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-                    // 💡 背面に超巨大なFontAwesomeの「透かしアート」を重ねたカードHTMLを生成
                     const cardHtml = `
                         <div class="analysis-card border-b-2 border-b-gray-800 hover:border-b-[#c89b3c] transition-all duration-300 transform hover:-translate-y-1">
                             <i class="fa-solid ${config.bgIcon} card-bg-icon"></i>
