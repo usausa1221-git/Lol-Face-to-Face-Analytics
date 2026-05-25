@@ -11,30 +11,24 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-        // api/gemini.js のプロンプト部分を修正
+        // 💡 APIの出力をJSON形式（responseMimeType）に固定する設定をURLパラメーターではなくオプションで渡すための準備
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         const prompt = `
-        あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報を、**必ず以下のMarkdown形式のフォーマットで**日本語で詳しく出力してください。
+            あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
+            自分のチャンピオン: ${myChamp}
+            相手のチャンピオン: ${enemyChamp}
+            この対面の勝率: ${winRate}%
 
-        自分のチャンピオン: ${myChamp}
-        相手のチャンピオン: ${enemyChamp}
-        この対面の勝率: ${winRate}% (${myChamp}側から見た数値)
+            【出力ルール】
+            必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。余計な挨拶や解説テキストは一切含めず、JSONデータのみを返してください。各値は箇条書き（改行付き）のテキストにしてください。
 
-        ---
-        ### 1. 相手のスキル詳細 & 注意点
-        （ここにスキル名と注意点。箇条書き推奨）
-
-        ### 2. 相手の明確な弱点
-        （ここに弱点。箇条書き推奨）
-
-        ### 3. 立ち回り (有利に動く方法)
-        （ここにレーン戦・集団戦の立ち回り。箇条書き推奨）
-
-        ### 4. 推奨装備
-        （ここにコア装備・対策装備。箇条書き推奨）
-        ---
+            {
+                "skills": "相手の主要スキルの詳細とCDや回避方法などの注意点",
+                "weaknesses": "相手チャンピオンの明確な弱点や突くべきタイミング",
+                "tactics": "レーン戦・集団戦での具体的な立ち回り（勝率の数値を意識すること）",
+                "items": "推奨されるコア装備や対面用のカウンターアイテム"
+            }
         `;
 
         const googleResponse = await fetch(url, {
@@ -42,7 +36,10 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                // 💡安全フィルターをLoLの解説用に少し緩める設定を追加
+                // 💡 Geminiに確実にJSONを吐き出させるための超重要設定
+                generationConfig: {
+                    responseMimeType: "application/json"
+                },
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -54,17 +51,16 @@ export default async function handler(req, res) {
 
         const data = await googleResponse.json();
 
-        // 💡 Googleからエラーが返ってきた、またはブロックされた場合のチェックを追加
         if (!data.candidates || data.candidates.length === 0) {
-            console.error("Gemini Error Response:", data);
-
-            // ブロックされた理由が記載されているかチェック
-            const reason = data.promptFeedback?.blockReason || "AIの安全フィルターによって出力がブロックされたか、APIキーが無効です。";
-            return res.status(400).json({ error: reason });
+            return res.status(400).json({ error: "AIの応答が空でした。再度お試しください。" });
         }
 
-        const aiText = data.candidates[0].content.parts[0].text;
-        return res.status(200).json({ text: aiText });
+        // Geminiから返ってきたJSON文字列
+        const aiJsonString = data.candidates[0].content.parts[0].text;
+
+        // 裏方側で一度パースして、中身が壊れていないかチェックしてフロントにそのままオブジェクトとして返す
+        const parsedData = JSON.parse(aiJsonString);
+        return res.status(200).json(parsedData);
 
     } catch (error) {
         return res.status(500).json({ error: error.message });
