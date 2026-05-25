@@ -5,15 +5,14 @@ export default async function handler(req, res) {
 
     try {
         const { myChamp, enemyChamp, winRate } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY; 
+        const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
-        
+
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-        
-        // 💡 プロンプトを「マークダウンの ```json 〜 ``` で囲って出力して」という指示に最適化しました
+
         const prompt = `
             あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
             自分のチャンピオン: ${myChamp}
@@ -24,11 +23,13 @@ export default async function handler(req, res) {
             必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。
             プログラムで自動処理するため、余計な挨拶や解説テキストは絶対に含めず、純粋なマークダウンのJSONブロック（\`\`\`json 〜 \`\`\`）のみを返してください。各値は箇条書きのテキストにしてください。
 
+            特記事項として、"items"の項目にLoLのコアアイテムやカウンターアイテムを記載する際は、アイテム名の直前にシステム用のアイテムIDを「#数字」の形式（例: #3078 三位一体, #3153 滅びゆく王の剣, #1055 ドランブレード）で必ず含めて出力してください。
+
             {
                 "skills": "相手の主要スキルの詳細とCDや回避方法などの注意点",
                 "weaknesses": "相手チャンピオンの明確な弱点や突くべきタイミング",
                 "tactics": "レーン戦・集団戦での具体的な立ち回り（勝率の数値を意識すること）",
-                "items": "推奨されるコア装備や対面用のカウンターアイテム"
+                "items": "推奨されるコア装備や対面用のカウンターアイテム（必ずアイテム名の前に#アイテムIDを入れること）"
             }
         `;
 
@@ -37,7 +38,6 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                // 💡 エラーの原因だった generation_config（response_mime_type）を完全に削除しました
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -50,8 +50,8 @@ export default async function handler(req, res) {
         const data = await googleResponse.json();
 
         if (!googleResponse.ok) {
-            return res.status(googleResponse.status).json({ 
-                error: `Google API Error: ${data.error?.message || '不明なエラー'}` 
+            return res.status(googleResponse.status).json({
+                error: `Google API Error: ${data.error?.message || '不明なエラー'}`
             });
         }
 
@@ -60,15 +60,13 @@ export default async function handler(req, res) {
         }
 
         let aiText = data.candidates[0].content.parts[0].text.trim();
-        
-        // 💡 AIが「\`\`\`json」と「\`\`\`」のマークダウンで返してきた場合、純粋なJSON文字列だけを切り出す安全処理
+
         if (aiText.startsWith("```json")) {
             aiText = aiText.replace(/^```json/, "").replace(/```$/, "").trim();
         } else if (aiText.startsWith("```")) {
             aiText = aiText.replace(/^```/, "").replace(/```$/, "").trim();
         }
-        
-        // 切り出したJSONをオブジェクトに変換してフロントに送信
+
         const parsedData = JSON.parse(aiText);
         return res.status(200).json(parsedData);
 
