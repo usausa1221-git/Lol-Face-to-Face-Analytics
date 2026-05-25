@@ -4,8 +4,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        // 💡 フロントから送られてくる新しい変数（isBotLane, mySupport, enemySupport）を受け取る
-        const { myChamp, enemyChamp, winRate, isBotLane, mySupport, enemySupport } = req.body;
+        // 💡 新しい変数 myRole をフロントから受け取る
+        const { myChamp, enemyChamp, winRate, isBotLane, mySupport, enemySupport, myRole } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
@@ -14,18 +14,24 @@ export default async function handler(req, res) {
 
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
-        // 💡 モードによってプロンプトの前提文を動的に切り替える
         let matchupContext = "";
         if (isBotLane) {
+            // 💡 プレイヤーのロールに応じたコーチングの強調指示を作成
+            const roleInstructions = myRole === "support"
+                ? `プレイヤーの担当ロールは【サポート（${mySupport}）】です。相方のADC（${myChamp}）をどのように保護・エンゲージ支援すべきか、視界管理やレーンコントロール、サポート専用アイテム（クエスト進化）の選択を最優先で解説してください。`
+                : `プレイヤーの担当ロールは【ADC（${myChamp}）】です。味方サポート（${mySupport}）のCCやバフにどう合わせるか、安全なCSファームやダメージトレードの立ち回りを中心に解説してください。`;
+
             matchupContext = `
                 【Botレーン（2vs2）マッチアップ条件】
-                ・自分のチャンピオン（ADC）: ${myChamp}
-                ・味方のサポート: ${mySupport}
-                ・相手のチャンピオン（ADC）: ${enemyChamp}
-                ・相手のサポート: ${enemySupport}
+                ・自分のチームのADC: ${myChamp}
+                ・自分のチームのサポート: ${mySupport}
+                ・相手チームのADC: ${enemyChamp}
+                ・相手チームのサポート: ${enemySupport}
                 ・この対面の統計勝率: ${winRate}%
                 
-                ※アドバイスの際は、ADCとサポートのシナジー（コンボや相性）や、2vs2のレーン戦におけるキルライン、お互いのスキルの噛み合いを深く考慮してください。
+                【最重要指示】
+                ${roleInstructions}
+                ADCとサポートのシナジー（コンボや相性）、2vs2でのキルラインやお互いのスキルの噛み合いを深く考慮してください。
             `;
         } else {
             matchupContext = `
@@ -43,13 +49,13 @@ export default async function handler(req, res) {
             【出力ルール】
             必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。
             プログラムで自動処理するため、余計な挨拶や解説テキストは絶対に含めず、純粋なマークダウンのJSONブロック（\`\`\`json 〜 \`\`\`）のみを返してください。各値は箇条書きのテキストにしてください。
-            コアアイテムを記載する際は、アイテム名の直前にシステム用のアイテムIDを「#数字」の形式（例: #3031 無限の剣）で必ず含めてください。
+            コアアイテムを記載する際は、アイテム名の直前にシステム用のアイテムIDを「#数字」の形式（例: #3031 無限の剣, #3865 世界の記憶）で必ず含めてください。
 
             {
-                "skills": "相手側（Botモードなら相手のADC・サポ両方）の主要スキルの詳細や注意すべきコンボ・CCチェーン",
+                "skills": "相手マッチャアップの主要スキルの詳細や注意すべきコンボ・CCチェーン",
                 "weaknesses": "相手側の構成（または単体）の明確な弱点、レベルやスキルCDなどの突くべきタイミング",
-                "tactics": "レーン戦・2vs2での戦い方、ガンク合わせ、集団戦での具体的な立ち回り（勝率の数値を意識すること）",
-                "items": "推奨されるコア装備や対面・相手チームのダメージ属性を意識したカウンターアイテム"
+                "tactics": "指定されたロールの役割を果たすための、レーン戦・2vs2での戦い方、ガンク合わせ、集団戦での具体的な立ち回り",
+                "items": "指定されたロールが買うべき、推奨コア装備や対面・相手チームを意識したカウンターアイテム"
             }
         `;
 
