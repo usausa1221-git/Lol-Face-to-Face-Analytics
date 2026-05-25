@@ -11,7 +11,7 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
         
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
         const prompt = `
             あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
