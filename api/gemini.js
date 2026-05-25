@@ -11,9 +11,9 @@ export default async function handler(req, res) {
             return res.status(500).json({ error: 'サーバーにGEMINI_API_KEYが設定されていません。' });
         }
         
-        // 💡 モデル名を最新の「gemini-2.5-flash」に変更しました
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
+        // 💡 プロンプトを「マークダウンの ```json 〜 ``` で囲って出力して」という指示に最適化しました
         const prompt = `
             あなたはLeague of Legendsのプロコーチです。以下の条件における対面マッチアップの攻略情報をプレイヤーに提供してください。
             自分のチャンピオン: ${myChamp}
@@ -21,7 +21,8 @@ export default async function handler(req, res) {
             この対面の勝率: ${winRate}%
 
             【出力ルール】
-            必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。余計な挨拶や解説テキストは絶対に含めず、純粋なJSONオブジェクト単体のみを返してください。各値は箇条書きのテキストにしてください。
+            必ず、以下のJSONフォーマットのキー名（skills, weaknesses, tactics, items）を持ったオブジェクトとして出力してください。
+            プログラムで自動処理するため、余計な挨拶や解説テキストは絶対に含めず、純粋なマークダウンのJSONブロック（\`\`\`json 〜 \`\`\`）のみを返してください。各値は箇条書きのテキストにしてください。
 
             {
                 "skills": "相手の主要スキルの詳細とCDや回避方法などの注意点",
@@ -36,9 +37,7 @@ export default async function handler(req, res) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 contents: [{ parts: [{ text: prompt }] }],
-                generation_config: {
-                    response_mime_type: "application/json"
-                },
+                // 💡 エラーの原因だった generation_config（response_mime_type）を完全に削除しました
                 safetySettings: [
                     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
                     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -60,9 +59,17 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "AIの応答候補(candidates)が空でした。" });
         }
 
-        const aiJsonString = data.candidates[0].content.parts[0].text;
+        let aiText = data.candidates[0].content.parts[0].text.trim();
         
-        const parsedData = JSON.parse(aiJsonString.trim());
+        // 💡 AIが「\`\`\`json」と「\`\`\`」のマークダウンで返してきた場合、純粋なJSON文字列だけを切り出す安全処理
+        if (aiText.startsWith("```json")) {
+            aiText = aiText.replace(/^```json/, "").replace(/```$/, "").trim();
+        } else if (aiText.startsWith("```")) {
+            aiText = aiText.replace(/^```/, "").replace(/```$/, "").trim();
+        }
+        
+        // 切り出したJSONをオブジェクトに変換してフロントに送信
+        const parsedData = JSON.parse(aiText);
         return res.status(200).json(parsedData);
 
     } catch (error) {
