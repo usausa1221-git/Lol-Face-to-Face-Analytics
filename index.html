@@ -311,9 +311,9 @@
             cursor: not-allowed;
         }
 
-        /* VS ショーケース */
+        /* VS ショーケース（💡最初から flex にして常時表示させる） */
         .vs-box {
-            display: none;
+            display: flex;
             justify-content: center;
             align-items: center;
             gap: 30px;
@@ -339,6 +339,7 @@
             border-radius: 12px;
             object-fit: cover;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            background-color: #161b22;
         }
 
         .vs-avatar.blue {
@@ -591,21 +592,21 @@
             <div id="vsShowcase" class="vs-box">
                 <div class="vs-side">
                     <div class="vs-champ"><img id="myVsImg" class="vs-avatar blue" src="" alt="">
-                        <div id="myVsName" class="vs-name"></div>
+                        <div id="myVsName" class="vs-name">未選択</div>
                     </div>
                     <div id="mySupVsContainer" class="vs-champ hidden"><img id="mySupVsImg" class="vs-avatar sub-blue"
                             src="" alt="">
-                        <div id="mySupVsName" class="vs-name" style="color: #8892b0;"></div>
+                        <div id="mySupVsName" class="vs-name" style="color: #8892b0;">未選択</div>
                     </div>
                 </div>
                 <div class="vs-text">VS</div>
                 <div class="vs-side">
                     <div class="vs-champ"><img id="enemyVsImg" class="vs-avatar red" src="" alt="">
-                        <div id="enemyVsName" class="vs-name"></div>
+                        <div id="enemyVsName" class="vs-name">未選択</div>
                     </div>
                     <div id="enemySupVsContainer" class="vs-champ hidden"><img id="enemySupVsImg"
                             class="vs-avatar sub-red" src="" alt="">
-                        <div id="enemySupVsName" class="vs-name" style="color: #8892b0;"></div>
+                        <div id="enemySupVsName" class="vs-name" style="color: #8892b0;">未選択</div>
                     </div>
                 </div>
             </div>
@@ -623,7 +624,7 @@
                 <div id="splashBg"></div>
                 <div id="winRateDisplay" class="wr-num">--%</div>
                 <div class="wr-info">
-                    <h2 class="wr-title"><i class="fa-solid fa-chart-line" style="color: #c89b3c;"></i> 对面勝率 (LoLalytics
+                    <h2 class="wr-title"><i class="fa-solid fa-chart-line" style="color: #c89b3c;"></i> 対面勝率 (LoLalytics
                         Live)</h2>
                     <div style="color: #8892b0; font-size: 0.85rem; margin-top: 4px;">AIは相性傾向や担当役割を前提に最適なレーンプランを算出しています。
                     </div>
@@ -640,6 +641,9 @@
         let currentVersion = '16.1.1';
         let isBotLaneMode = false;
         let selectedMyRole = 'adc';
+
+        // 💡 未選択の時に「ダサい非表示マーク」を出さないためのランダム選択アイコンURL
+        const DEFAULT_ICON = "https://ddragon.leagueoflegends.com/cdn/img/champion/loading/Aatrox_0.jpg";
 
         const myInput = document.getElementById('myChampInput'); const myDropdown = document.getElementById('myChampDropdown');
         const enemyInput = document.getElementById('enemyChampInput'); const enemyDropdown = document.getElementById('enemyChampDropdown');
@@ -678,10 +682,13 @@
             botModeBtn.classList.add('tab-active'); soloModeBtn.classList.remove('tab-active');
             supportInputs.classList.remove('hidden');
             roleSelectionContainer.classList.remove('hidden');
-            if (selectedMySup) mySupVsContainer.classList.remove('hidden');
-            if (selectedEnemySup) enemySupVsContainer.classList.remove('hidden');
+
+            // 💡 2vs2起動時に画像がバグるのを防ぐ初期値の同期
+            mySupVsContainer.classList.remove('hidden');
+            enemySupVsContainer.classList.remove('hidden');
+
             updateLabelNames();
-            updateVsWidget();
+            resetIconsIfEmpty();
         });
 
         // ロール選択
@@ -714,6 +721,14 @@
             return src.replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
         }
 
+        // 💡 選択されていない部分に公式のデフォルト placeholder 画像を流し込む安全処理
+        function resetIconsIfEmpty() {
+            if (!selectedMyChamp) { myVsImg.src = DEFAULT_ICON; myVsName.innerText = "未選択"; }
+            if (!selectedEnemyChamp) { enemyVsImg.src = DEFAULT_ICON; enemyVsName.innerText = "未選択"; }
+            if (!selectedMySup) { mySupVsImg.src = DEFAULT_ICON; mySupVsName.innerText = "未選択"; }
+            if (!selectedEnemySup) { enemySupVsImg.src = DEFAULT_ICON; enemySupVsName.innerText = "未選択"; }
+        }
+
         async function loadAllChampions() {
             try {
                 const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
@@ -730,20 +745,17 @@
                 enemyInput.placeholder = "名前を入力...";
                 analyzeBtn.disabled = false; analyzeBtn.innerText = "戦術を生成する";
 
-                setupDropdown(myInput, myDropdown, (id, name) => { selectedMyChamp = id; myVsName.innerText = name; myVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; updateVsWidget(); });
-                setupDropdown(enemyInput, enemyDropdown, (id, name) => { selectedEnemyChamp = id; enemyVsName.innerText = name; enemyVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; updateVsWidget(); });
-                setupDropdown(mySupInput, mySupDropdown, (id, name) => { selectedMySup = id; mySupVsName.innerText = name; mySupVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; if (isBotLaneMode) mySupVsContainer.classList.remove('hidden'); updateVsWidget(); });
-                setupDropdown(enemySupInput, enemySupDropdown, (id, name) => { selectedEnemySup = id; enemySupVsName.innerText = name; enemySupVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; if (isBotLaneMode) enemySupVsContainer.classList.remove('hidden'); updateVsWidget(); });
+                // 初期状態で「未選択画像」をセット
+                resetIconsIfEmpty();
+
+                setupDropdown(myInput, myDropdown, (id, name) => { selectedMyChamp = id; myVsName.innerText = name; myVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; });
+                setupDropdown(enemyInput, enemyDropdown, (id, name) => { selectedEnemyChamp = id; enemyVsName.innerText = name; enemyVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; });
+                setupDropdown(mySupInput, mySupDropdown, (id, name) => { selectedMySup = id; mySupVsName.innerText = name; mySupVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; });
+                setupDropdown(enemySupInput, enemySupDropdown, (id, name) => { selectedEnemySup = id; enemySupVsName.innerText = name; enemySupVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; });
 
             } catch (error) {
                 console.error(error);
                 analyzeBtn.innerText = "データロードエラー";
-            }
-        }
-
-        function updateVsWidget() {
-            if (selectedMyChamp || selectedEnemyChamp || selectedMySup || selectedEnemySup) {
-                document.getElementById('vsShowcase').style.display = 'flex';
             }
         }
 
