@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
-        /* 100%確実に適用されるピュアCSSスタイル */
+        /* ピュアCSSスタイル */
         body {
             background-color: #0b0e14;
             color: #c9d1d9;
@@ -53,7 +53,6 @@
         }
 
         .divider {
-            hieght: 2px;
             width: 120px;
             background: linear-gradient(90deg, transparent, #c89b3c, transparent);
             height: 2px;
@@ -155,7 +154,7 @@
             border: 1px solid #30363d;
             border-radius: 16px;
             padding: 30px;
-            shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
             gap: 20px;
@@ -205,7 +204,6 @@
         }
 
         .champ-input {
-            w-width: 100%;
             width: 100%;
             box-sizing: border-box;
             background-color: #161b22;
@@ -301,11 +299,10 @@
             border-radius: 12px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s, brightness 0.2s;
+            transition: transform 0.2s, filter 0.2s;
         }
 
         .btn-submit:hover {
-            brightness: 110%;
             filter: brightness(1.1);
         }
 
@@ -332,7 +329,7 @@
         .vs-champ {
             display: flex;
             flex-direction: column;
-            items-center: center;
+            align-items: center;
             text-align: center;
         }
 
@@ -417,9 +414,7 @@
             position: absolute;
             right: 0;
             top: 0;
-            w-width: 60%;
             width: 60%;
-            h-height: 100%;
             height: 100%;
             opacity: 0.35;
             background-size: cover;
@@ -557,7 +552,7 @@
                 <div class="input-group">
                     <label id="myLabel" class="label-blue"><i class="fa-solid fa-shield-halved"></i> 自分のチャンピオン</label>
                     <div class="input-wrapper">
-                        <input type="text" id="myChampInput" class="champ-input" placeholder="読み込み中..." disabled>
+                        <input type="text" id="myChampInput" class="champ-input" placeholder="名前を入力..." disabled>
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     </div>
                     <ul id="myChampDropdown" class="dropdown-list"></ul>
@@ -566,7 +561,7 @@
                 <div class="input-group">
                     <label id="enemyLabel" class="label-red"><i class="fa-solid fa-skull"></i> 相手のチャンピオン</label>
                     <div class="input-wrapper">
-                        <input type="text" id="enemyChampInput" class="champ-input" placeholder="読み込み中..." disabled>
+                        <input type="text" id="enemyChampInput" class="champ-input" placeholder="名前を入力..." disabled>
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     </div>
                     <ul id="enemyChampDropdown" class="dropdown-list"></ul>
@@ -620,7 +615,7 @@
 
         <div id="loadingView">
             <i class="fa-solid fa-compass spin"></i>
-            <div style="color: #8892b0;">Gemini 2.5が2vs2のレーンプランをシミュレート中...</div>
+            <div style="color: #8892b0;">Geminiが戦術・レーンプランをシミュレート中...</div>
         </div>
 
         <div id="resultView">
@@ -628,7 +623,7 @@
                 <div id="splashBg"></div>
                 <div id="winRateDisplay" class="wr-num">--%</div>
                 <div class="wr-info">
-                    <h2 class="wr-title"><i class="fa-solid fa-chart-line" style="color: #c89b3c;"></i> 対面勝率 (LoLalytics
+                    <h2 class="wr-title"><i class="fa-solid fa-chart-line" style="color: #c89b3c;"></i> 对面勝率 (LoLalytics
                         Live)</h2>
                     <div style="color: #8892b0; font-size: 0.85rem; margin-top: 4px;">AIは相性傾向や担当役割を前提に最適なレーンプランを算出しています。
                     </div>
@@ -646,7 +641,6 @@
         let isBotLaneMode = false;
         let selectedMyRole = 'adc';
 
-        // DOMの取得
         const myInput = document.getElementById('myChampInput'); const myDropdown = document.getElementById('myChampDropdown');
         const enemyInput = document.getElementById('enemyChampInput'); const enemyDropdown = document.getElementById('enemyChampDropdown');
         const mySupInput = document.getElementById('mySupportInput'); const mySupDropdown = document.getElementById('mySupportDropdown');
@@ -667,7 +661,7 @@
         const myVsName = document.getElementById('myVsName'); const enemyVsName = document.getElementById('enemyVsName');
         const mySupVsName = document.getElementById('mySupVsName'); const enemySupVsName = document.getElementById('enemySupVsName');
 
-        // モードタブ切り替えイベント
+        // モードタブ切り替え
         soloModeBtn.addEventListener('click', () => {
             isBotLaneMode = false;
             soloModeBtn.classList.add('tab-active'); botModeBtn.classList.remove('tab-active');
@@ -690,7 +684,7 @@
             updateVsWidget();
         });
 
-        // ロール選択イベント
+        // ロール選択
         roleAdcBtn.addEventListener('click', () => {
             selectedMyRole = 'adc';
             roleAdcBtn.classList.add('role-active'); roleSupBtn.classList.remove('role-active');
@@ -720,7 +714,6 @@
             return src.replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
         }
 
-        // Data Dragonのロード処理
         async function loadAllChampions() {
             try {
                 const versionRes = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
@@ -733,8 +726,8 @@
                 })).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
 
                 myInput.disabled = false; enemyInput.disabled = false;
-                myInput.placeholder = "名前を入力（ひらがな対応）";
-                enemyInput.placeholder = "名前を入力（ひらがな対応）";
+                myInput.placeholder = "名前を入力...";
+                enemyInput.placeholder = "名前を入力...";
                 analyzeBtn.disabled = false; analyzeBtn.innerText = "戦術を生成する";
 
                 setupDropdown(myInput, myDropdown, (id, name) => { selectedMyChamp = id; myVsName.innerText = name; myVsImg.src = `https://ddragon.leagueoflegends.com/cdn/${currentVersion}/img/champion/${id}.png`; updateVsWidget(); });
